@@ -6,16 +6,18 @@ let socket = null;
 
 // Krijon lidhjen me Socket.IO server
 const connect_socket = () => {
-    if (socket) {
-        return socket;
+    if (!socket) {
+        socket = io(SOCKET_URL, {
+            transports: ['websocket'],
+            withCredentials: true,
+            autoConnect: false,
+        });
     }
-    socket = io(SOCKET_URL, {
-        transports: ['websocket'],
-        withCredentials: true,
-        autoConnect: false,
-    });
-    // ne backend websocketgateway
-    socket.connect();
+
+    if (!socket.connected) {
+        socket.connect();
+    }
+
     return socket;
 };
 

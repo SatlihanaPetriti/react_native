@@ -31,11 +31,11 @@ const SocketProvider = ({ children }) => {
         });
 
         socket.on('roomJoined', data => {
-            console.log('Room joined:', data);
+            console.log('ROOM JOINED SUCCESS:', data);
         });
 
         socket.on('messageReceived', message => {
-            console.log('Message received:', message);
+            console.log('MESSAGE RECEIVED LIVE:', message);
             setLastMessage(message);
         });
 
@@ -51,14 +51,9 @@ const SocketProvider = ({ children }) => {
     };
 
     // Fut userin ne room
-    const joinRoom = conversationId => {
+    const joinRoom = (conversationId) => {
         const socket = get_socket();
         const id = Number(conversationId);
-
-        if (!socket?.connected) {
-            console.log('Socket is not connected');
-            return;
-        }
 
         if (!id) {
             console.log('Invalid conversation ID');
@@ -67,7 +62,16 @@ const SocketProvider = ({ children }) => {
 
         setCurrentConversationId(id);
 
-        socket.emit('joinRoom', id);
+        // Nëse socket është lidhur
+        if (socket?.connected) {
+            socket.emit('joinRoom', id);
+            return;
+        }
+
+        // Nëse është ende duke u lidhur
+        socket?.once('connect', () => {
+            socket.emit('joinRoom', id);
+        });
     };
 
     // Dergo mesazhin

@@ -6,51 +6,28 @@ import {
     Pressable,
     FlatList,
     StyleSheet,
-    KeyboardAvoidingView,
-    Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useChat } from '../Context/chatContext';
 import { useSocket } from '../Context/socketContext';
 import { useUserContext } from '../Context/Auth';
-import { colors, spacing, radii, typography } from './theme';
 
-// Payloads coming from the socket / REST API don't always agree on the
-// field name for "who sent this" (senderId, userId, sender.id, ...), and
-// ids sometimes arrive as a string from one source and a number from
-// another (e.g. "3" vs 3). A strict `===` breaks in both cases, so we
-// normalize everything to a string and check a few likely field names.
-const isMessageMine = (message, user) => {
-    if (!message || !user) {
-        return false;
-    }
-
-    const senderId =
-        message.senderId ??
-        message.userId ??
-        message.sender?.id ??
-        message.user?.id ??
-        message.authorId;
-
-    if (senderId === undefined || senderId === null || user.id === undefined || user.id === null) {
-        return false;
-    }
-
-    return String(senderId) === String(user.id);
-};
-
-const ChatScreen = ({ route, navigation }) => {
+const ChatScreen = ({ route }) => {
     const { conversationId } = route.params;
 
     const [content, setContent] = useState('');
 
+    // User i loguar
+    const { user } = useUserContext();
+
+    // HTTP
     const {
         messages,
         setMessages,
         loadMessages,
     } = useChat();
 
+    // Socket
     const {
         socketConnected,
         connectSocket,
@@ -59,39 +36,27 @@ const ChatScreen = ({ route, navigation }) => {
         lastMessage,
     } = useSocket();
 
-    const { user } = useUserContext();
-
+    // Merr historikun dhe lidh socket
     useEffect(() => {
         loadMessages(conversationId);
+
         connectSocket();
+
+        joinRoom(conversationId);
     }, [conversationId]);
-
-    useEffect(() => {
-        if (socketConnected) {
-            joinRoom(conversationId);
-        }
-    }, [socketConnected, conversationId]);
-
+    // Kur vjen mesazh live, shtoje ne liste
     useEffect(() => {
         if (!lastMessage) {
             return;
         }
 
-        setMessages(currentMessages => {
-            // Guard against the same message being appended twice
-            // (e.g. the server echoing 'messageReceived' back to the
-            // sender, or a listener firing more than once).
-            const alreadyExists = currentMessages.some(
-                message => message.id === lastMessage.id
-            );
+        
 
-            if (alreadyExists) {
-                return currentMessages;
-            }
-
-            return [...currentMessages, lastMessage];
-        });
-    }, [lastMessage]);
+        setMessages(currentMessages => [
+            ...currentMessages,
+            lastMessage,
+        ]);
+    }, [lastMessage, conversationId]);
 
     const handleSend = () => {
         if (!content.trim()) {
@@ -103,214 +68,141 @@ const ChatScreen = ({ route, navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
 
-            <View style={styles.header}>
-                <Pressable
-                    onPress={() => navigation.goBack()}
-                    style={styles.backButton}
-                    hitSlop={8}
-                >
-                    <Text style={styles.backButtonText}>‹</Text>
-                </Pressable>
+            <Text style={styles.status}>
+                {socketConnected
+                    ? 'Connected'
+                    : 'Disconnected'}
+            </Text>
 
-                <View style={styles.headerCenter}>
-                    <Text style={styles.headerTitle} numberOfLines={1}>
-                        Bisedë {conversationId}
-                    </Text>
-                    <Text style={styles.headerStatus}>
-                        {socketConnected ? 'Online' : 'Duke u lidhur…'}
-                    </Text>
-                </View>
+            <FlatList
+                data={messages}
+                keyExtractor={(item) => item.id.toString()}
+                contentContainerStyle={styles.messagesList}
+                renderItem={({ item }) => {
+                    const isMine =
+                        Number(item.senderId) ===
+                        Number(user?.id);
 
-                <View style={styles.backButton} />
-            </View>
-
-            <KeyboardAvoidingView
-                style={styles.flex}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-            >
-                <FlatList
-                    data={messages}
-                    keyExtractor={(item) => item.id.toString()}
-                    contentContainerStyle={styles.listContent}
-                    ItemSeparatorComponent={() => <View style={styles.messageSpacer} />}
-                    renderItem={({ item }) => {
-                        const isMine = isMessageMine(item, user);
-
-                        return (
-                            <View
+                    return (
+                        <View
+                            style={[
+                                styles.messageBubble,
+                                isMine
+                                    ? styles.myMessage
+                                    : styles.otherMessage,
+                            ]}
+                        >
+                            <Text
                                 style={[
-                                    styles.bubbleRow,
-                                    isMine ? styles.bubbleRowMine : styles.bubbleRowTheirs,
+                                    styles.messageText,
+                                    isMine &&
+                                    styles.myMessageText,
                                 ]}
                             >
-                                <View
-                                    style={[
-                                        styles.bubble,
-                                        isMine ? styles.bubbleMine : styles.bubbleTheirs,
-                                    ]}
-                                >
-                                    <Text
-                                        style={[
-                                            styles.bubbleText,
-                                            isMine ? styles.bubbleTextMine : styles.bubbleTextTheirs,
-                                        ]}
-                                    >
-                                        {item.content}
-                                    </Text>
-                                </View>
-                            </View>
-                        );
-                    }}
+                                {item.content}
+                            </Text>
+                        </View>
+                    );
+                }}
+            />
+
+            <View style={styles.inputContainer}>
+                <TextInput
+                    value={content}
+                    onChangeText={setContent}
+                    placeholder="Message..."
+                    style={styles.input}
                 />
 
-                <View style={styles.inputBar}>
-                    <TextInput
-                        value={content}
-                        onChangeText={setContent}
-                        placeholder="Shkruaj një mesazh…"
-                        placeholderTextColor={colors.textSecondary}
-                        style={styles.input}
-                        multiline
-                    />
+                <Pressable
+                    onPress={handleSend}
+                    style={styles.sendButton}
+                >
+                    <Text style={styles.sendButtonText}>
+                        Send
+                    </Text>
+                </Pressable>
+            </View>
 
-                    <Pressable
-                        onPress={handleSend}
-                        disabled={!content.trim()}
-                        style={({ pressed }) => [
-                            styles.sendButton,
-                            !content.trim() && styles.sendButtonDisabled,
-                            pressed && !!content.trim() && styles.sendButtonPressed,
-                        ]}
-                    >
-                        <Text style={styles.sendButtonText}>Dërgo</Text>
-                    </Pressable>
-                </View>
-            </KeyboardAvoidingView>
-
-        </SafeAreaView>
+        </View>
     );
 };
 
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-    safeArea: {
+    container: {
         flex: 1,
-        backgroundColor: colors.background,
+        padding: 15,
+        backgroundColor: '#f5f5f5',
     },
-    flex: {
-        flex: 1,
+
+    status: {
+        textAlign: 'center',
+        marginBottom: 10,
     },
-    header: {
+
+    messagesList: {
+        paddingBottom: 10,
+    },
+
+    messageBubble: {
+        maxWidth: '75%',
+        padding: 10,
+        marginVertical: 5,
+        borderRadius: 12,
+    },
+
+    // Mesazhet e user-it te loguar
+    myMessage: {
+        alignSelf: 'flex-end',
+        backgroundColor: '#25D366',
+    },
+
+    // Mesazhet e user-it tjeter
+    otherMessage: {
+        alignSelf: 'flex-start',
+        backgroundColor: '#ffffff',
+        borderWidth: 1,
+        borderColor: '#dddddd',
+    },
+
+    messageText: {
+        color: '#222222',
+        fontSize: 16,
+    },
+
+    myMessageText: {
+        color: '#ffffff',
+    },
+
+    inputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        backgroundColor: colors.surface,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        gap: 10,
     },
-    backButton: {
-        width: 32,
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-    },
-    backButtonText: {
-        fontSize: 28,
-        color: colors.primary,
-        lineHeight: 30,
-    },
-    headerCenter: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        ...typography.subtitle,
-        color: colors.textPrimary,
-    },
-    headerStatus: {
-        ...typography.caption,
-        color: colors.textSecondary,
-        marginTop: 2,
-    },
-    listContent: {
-        padding: spacing.md,
-        flexGrow: 1,
-    },
-    messageSpacer: {
-        height: spacing.xs,
-    },
-    bubbleRow: {
-        flexDirection: 'row',
-    },
-    bubbleRowMine: {
-        justifyContent: 'flex-end',
-    },
-    bubbleRowTheirs: {
-        justifyContent: 'flex-start',
-    },
-    bubble: {
-        maxWidth: '78%',
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: radii.lg,
-    },
-    bubbleMine: {
-        backgroundColor: colors.bubbleMine,
-        borderBottomRightRadius: radii.sm,
-    },
-    bubbleTheirs: {
-        backgroundColor: colors.bubbleTheirs,
-        borderBottomLeftRadius: radii.sm,
-    },
-    bubbleText: {
-        ...typography.body,
-    },
-    bubbleTextMine: {
-        color: colors.bubbleMineText,
-    },
-    bubbleTextTheirs: {
-        color: colors.bubbleTheirsText,
-    },
-    inputBar: {
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        backgroundColor: colors.surface,
-        borderTopWidth: 1,
-        borderTopColor: colors.border,
-        gap: spacing.sm,
-    },
+
     input: {
         flex: 1,
-        maxHeight: 100,
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        backgroundColor: colors.background,
-        borderRadius: radii.lg,
         borderWidth: 1,
-        borderColor: colors.border,
-        color: colors.textPrimary,
-        ...typography.body,
+        borderColor: '#cccccc',
+        borderRadius: 20,
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        backgroundColor: '#ffffff',
     },
+
     sendButton: {
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm + 2,
-        borderRadius: radii.lg,
-        backgroundColor: colors.primary,
+        backgroundColor: '#25D366',
+        paddingHorizontal: 18,
+        paddingVertical: 12,
+        borderRadius: 20,
     },
-    sendButtonPressed: {
-        backgroundColor: colors.primaryDark,
-    },
-    sendButtonDisabled: {
-        backgroundColor: colors.border,
-    },
+
     sendButtonText: {
-        color: colors.textOnPrimary,
-        fontWeight: '600',
+        color: '#ffffff',
+        fontWeight: 'bold',
     },
 });

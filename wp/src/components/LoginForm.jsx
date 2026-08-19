@@ -8,12 +8,9 @@ import {
 } from 'react-native';
 
 import { useUserContext } from '../Context/Auth';
-import { useNavigation } from '@react-navigation/native';
 
 const LoginForm = () => {
     const { login, error, setError } = useUserContext();
-
-    const navigation = useNavigation();
 
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
@@ -21,16 +18,10 @@ const LoginForm = () => {
     const handleLogin = async () => {
         setError(null);
 
-        try {
-            await login({
-                phoneNumber,
-                password,
-            });
-
-            navigation.navigate('Chats');
-        } catch (error) {
-            console.log('Login error:', error);
-        }
+        await login({
+            phoneNumber,
+            password,
+        });
     };
 
     return (
