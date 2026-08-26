@@ -1,12 +1,5 @@
 import { useEffect } from 'react';
-import {
-    View,
-    Text,
-    FlatList,
-    Pressable,
-    StyleSheet,
-    StatusBar,
-} from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useChat } from '../Context/chatContext';

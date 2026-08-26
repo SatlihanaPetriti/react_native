@@ -5,7 +5,7 @@ import { UserService } from '../user/user.service';
 import { ChatService } from './chat.service';
 import { getTokenFromCookie } from './helpers/cookie.helper';
 import { SendMessageDto } from './dto/send-message.dto';
-import {CreateMessageDto } from './dto/create-message.dto';
+import { CreateMessageDto } from './dto/create-message.dto';
 // Gateway per komunikimin me WebSocket
 @WebSocketGateway({
   cors: {
@@ -16,7 +16,6 @@ import {CreateMessageDto } from './dto/create-message.dto';
 export class ChatGateway implements OnGatewayConnection {
   @WebSocketServer()
   server!: Server;
-
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
@@ -151,7 +150,6 @@ export class ChatGateway implements OnGatewayConnection {
     this.server
       .to(roomName)
       .emit('messageReceived', savedMessage);
-
     console.log(`Message ${savedMessage.id} saved and emitted to ${roomName}`,);
   }
 }

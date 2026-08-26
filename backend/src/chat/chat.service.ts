@@ -31,7 +31,7 @@ export class ChatService {
                 participantIds.includes(userAId) && participantIds.includes(userBId)
             );
         });
-        // nese ekziston conversation kthejme old conversation
+        // nese ekziston conversation kthejme old conversation ne menyre qe te mos krijohet shume conversations me te njejtin user
         if (existingConversation) {
             return existingConversation;
         }
@@ -40,7 +40,7 @@ export class ChatService {
             //perndryshe krijojme nje conversation te ri
             const conversation = this.conversationRepository.create({
                 participants: [
-                    { id: userAId } as UserEntity,
+                    { id: userAId } as UserEntity, // trajto objektin si UserEntity pasi na mjafton id e tij per te krijuar lidhjen ne databaze
                     { id: userBId } as UserEntity,
                 ],
             });
@@ -105,5 +105,40 @@ export class ChatService {
             // some kontrollojme nese useri eshte pjesemarres ne conversation
             conversation.participants.some((participant) => participant.id === userId),
         );
+    }
+
+    public async deleteConversation(conversationId: number, userId: number): Promise<{ message: string; status: HttpStatus }> {
+        const conversation = await this.conversationRepository.findOne({
+            where: { id: conversationId },
+            relations: ['participants'],
+        });
+
+        // kontrollo nese conversation ekziston
+        if (!conversation) {
+            throw new MyErrorHandler(
+                'Conversation not found',
+                HttpStatus.NOT_FOUND,
+            );
+        }
+        // user eshte pjesemarres ne conversation
+        const participant = conversation.participants.find(
+            (participant) => participant.id === userId,
+        );
+
+        if (!participant) {
+            throw new MyErrorHandler(
+                'You are not a participant of this conversation',
+                HttpStatus.UNAUTHORIZED,
+            );
+        }
+        try {
+            await this.conversationRepository.remove(conversation);
+            return { message: 'Conversation deleted successfully', status: HttpStatus.OK };
+        } catch {
+            throw new MyErrorHandler(
+                'Failed to delete conversation',
+                HttpStatus.BAD_REQUEST,
+            );
+        }
     }
 }

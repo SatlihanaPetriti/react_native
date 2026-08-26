@@ -1,6 +1,4 @@
-// Shared design tokens for the app.
-// Keeping this in one place means every screen reuses the same palette
-// instead of hardcoding hex values everywhere.
+
 
 export const colors = {
     primary: '#2c912f',
