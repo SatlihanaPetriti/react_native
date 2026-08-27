@@ -7,10 +7,11 @@ import { ChatController } from './chat.controller';
 import { Conversation } from './Entity/conversation.entity';
 import { Message } from './Entity/message.entity';
 import { UserModule } from '../user/user.module';
+import { ConversationParticipant } from './Entity/conversation-participant.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation, Message]),
+    TypeOrmModule.forFeature([Conversation, Message, ConversationParticipant]),
 
     UserModule,
     JwtModule.register({

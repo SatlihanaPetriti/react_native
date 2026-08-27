@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { ChatModule } from './chat/chat.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ConversationParticipant } from './chat/Entity/conversation-participant.entity';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       username: 'root',
       password: 'Inna1998',
       database: 'whatsapp',
-      entities: [UserEntity, Conversation, Message],
+      entities: [UserEntity, Conversation, Message, ConversationParticipant],
       synchronize: true,
     }),
     ServeStaticModule.forRoot({

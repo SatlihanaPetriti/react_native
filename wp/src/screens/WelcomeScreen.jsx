@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { Binary } from 'react-native-svg';
 import { useChat } from '../Context/chatContext';
 import { useUserContext } from '../Context/Auth';
 import { colors, spacing, radii, typography } from './theme';
@@ -15,6 +15,7 @@ const WelcomeScreen = ({ navigation }) => {
 
     const { conversations, loadConversations } = useChat();
     const { user, logout } = useUserContext();
+    const { deleteConversation } = useChat();
 
     useEffect(() => {
         loadConversations();
@@ -62,34 +63,48 @@ const WelcomeScreen = ({ navigation }) => {
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <Pressable
-                        onPress={() =>
-                            navigation.navigate('Chat', {
-                                conversationId: item.id,
-                            })
-                        }
-                        style={({ pressed }) => [
-                            styles.row,
-                            pressed && styles.rowPressed,
-                        ]}
-                    >
-                        <View style={styles.avatar}>
-                            <Text style={styles.avatarText}>{getInitial(item)}</Text>
-                        </View>
-
-                        <View style={styles.rowBody}>
-                            <Text style={styles.rowTitle} numberOfLines={1}>
-                                {item.title || `Bisedë ${item.id}`}
-                            </Text>
-                            {!!item.lastMessage && (
-                                <Text style={styles.rowSubtitle} numberOfLines={1}>
-                                    {item.lastMessage}
+                    <View style={styles.row}>
+                        <Pressable
+                            onPress={() =>
+                                navigation.navigate('Chat', {
+                                    conversationId: item.id,
+                                })
+                            }
+                            style={({ pressed }) => [
+                                styles.rowContent,
+                                pressed && styles.rowPressed,
+                            ]}
+                        >
+                            <View style={styles.avatar}>
+                                <Text style={styles.avatarText}>
+                                    {getInitial(item)}
                                 </Text>
-                            )}
-                        </View>
+                            </View>
 
-                        <Text style={styles.chevron}>›</Text>
-                    </Pressable>
+                            <View style={styles.rowBody}>
+                                <Text style={styles.rowTitle} numberOfLines={1}>
+                                    {item.title || `Bisedë ${item.id}`}
+                                </Text>
+
+                                {!!item.lastMessage && (
+                                    <Text style={styles.rowSubtitle} numberOfLines={1}>
+                                        {item.lastMessage}
+                                    </Text>
+                                )}
+                            </View>
+                        </Pressable>
+
+                        <Pressable
+                            onPress={() => deleteConversation(item.id)}
+                            style={({ pressed }) => [
+                                styles.deleteButton,
+                                pressed && styles.deleteButtonPressed,
+                            ]}
+                            hitSlop={8}
+                        >
+                            <Text style={styles.deleteIcon}>🗑</Text>
+                        </Pressable>
+                    </View>
                 )}
             />
 
@@ -151,7 +166,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: colors.surface,
         borderRadius: radii.md,
-        padding: spacing.md,
         borderWidth: 1,
         borderColor: colors.border,
     },
@@ -203,5 +217,28 @@ const styles = StyleSheet.create({
         ...typography.body,
         color: colors.textSecondary,
         textAlign: 'center',
+    },
+    rowContent: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: spacing.md,
+    },
+
+    deleteButton: {
+        width: 44,
+        height: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: spacing.sm,
+        borderRadius: radii.pill,
+    },
+
+    deleteButtonPressed: {
+        backgroundColor: colors.primaryTint,
+    },
+
+    deleteIcon: {
+        fontSize: 20,
     },
 });

@@ -13,5 +13,8 @@ const get_conversations = async () => {
 const get_messages = async (conversationId) => {
     return axios.get(`${URL}/conversations/${conversationId}/messages`);
 };
+const delete_conversation = async (conversationId) => {
+    return axios.delete(`${URL}/conversations/${conversationId}`);
+}
 
-export { start_conversation, get_conversations, get_messages };
+export { start_conversation, get_conversations, get_messages, delete_conversation };

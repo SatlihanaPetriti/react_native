@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from 'react';
-import { start_conversation, get_conversations, get_messages } from '../Services/chat';
+import { start_conversation, get_conversations, get_messages, delete_conversation } from '../Services/chat';
 
 const ChatContext = createContext();
 const ChatProvider = ({ children }) => {
@@ -24,9 +24,27 @@ const ChatProvider = ({ children }) => {
         return response.data;
     };
 
+    const deleteConversation = async (conversationId) => {
+        try {
+            const response = await delete_conversation(conversationId);
+
+            setConversations(prevConversations =>
+                prevConversations.filter(
+                    conversation =>
+                        Number(conversation.id) !== Number(conversationId)
+                )
+            );
+
+            return response.data;
+        } catch (error) {
+            console.log('DELETE CONVERSATION ERROR:', error);
+            throw error;
+        }
+    };
+
     return (
         <ChatContext.Provider
-            value={{ conversations, messages, setMessages, startConversation, loadConversations, loadMessages }}
+            value={{ conversations, messages, setMessages, startConversation, loadConversations, loadMessages, deleteConversation }}
         >
             {children}
         </ChatContext.Provider>
