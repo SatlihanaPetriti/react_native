@@ -86,7 +86,7 @@ export class ChatGateway implements OnGatewayConnection {
     }
 
     const user = client.data.user;
-    // Kontrollo nese useri eshte participant
+    // Kontrollo nese useri eshte participant (vlen njesoj per 1:1 dhe grup)
     const isParticipant = await this.chatService.isParticipant(parsedConversationId, user.id);
     if (!isParticipant) {
       client.emit('roomError', {
@@ -107,7 +107,7 @@ export class ChatGateway implements OnGatewayConnection {
       roomName,
     });
   }
-  // dergo mesazhin ne converstion 
+  // dergo mesazhin ne converstion (funksionon njesoj per 1:1 dhe grup)
   @SubscribeMessage('sendMessage')
   public async handleMessage(
     @ConnectedSocket() client: Socket,
@@ -151,5 +151,41 @@ export class ChatGateway implements OnGatewayConnection {
       .to(roomName)
       .emit('messageReceived', savedMessage);
     console.log(`Message ${savedMessage.id} saved and emitted to ${roomName}`,);
+  }
+
+  // Useri shenon biseden si "e lexuar" - i njofton te tjeret ne room per checkmarkat blu
+  @SubscribeMessage('markAsRead')
+  public async handleMarkAsRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { conversationId: number },
+  ) {
+    console.log('MARK AS READ EVENT RECEIVED:', data);
+
+    if (!data?.conversationId) {
+      client.emit('readError', {
+        message: 'Conversation ID is required',
+      });
+      return;
+    }
+
+    const user = client.data.user;
+
+    try {
+      const result = await this.chatService.markAsRead(
+        data.conversationId,
+        user.id,
+      );
+
+      const roomName = `conversation:${data.conversationId}`;
+      // Njofto te gjithe ne room qe ky user i ka lexuar mesazhet deri tani
+      this.server.to(roomName).emit('messagesRead', result);
+
+      console.log(`User ${user.id} marked ${roomName} as read`);
+    } catch (error) {
+      console.log('Mark as read failed:', error);
+      client.emit('readError', {
+        message: 'You are not a participant of this conversation',
+      });
+    }
   }
 }

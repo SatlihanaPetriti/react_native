@@ -24,9 +24,11 @@ export class Message {
     @Column('text')
     content: string;
 
-    @Column({ default: false })
-    isRead: boolean;
-
     @CreateDateColumn()
     createdAt: Date;
+
+    // SHENIM: fusha "isRead" u hoq. Ne grup, mesazhi lexohet nga secili user ne
+    // kohe te ndryshme, prandaj statusi i leximit nuk mund te jete nje boolean
+    // i vetem ne mesazh. Ai llogaritet dinamikisht ne ChatService.getMessages(),
+    // duke krahasuar message.createdAt me lastReadAt te secilit participant.
 }
