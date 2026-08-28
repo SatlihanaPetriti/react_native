@@ -1,4 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { UserEntity } from './user/Entity/user.entity';
@@ -13,15 +14,22 @@ import { ConversationParticipant } from './chat/Entity/conversation-participant.
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'root',
-      password: 'Inna1998',
-      database: 'whatsapp',
-      entities: [UserEntity, Conversation, Message, ConversationParticipant],
-      synchronize: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'mysql',
+        host: config.get<string>('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 3306),
+        username: config.get<string>('DB_USERNAME', 'root'),
+        password: config.get<string>('DB_PASSWORD', ''),
+        database: config.get<string>('DB_DATABASE', 'whatsapp'),
+        entities: [UserEntity, Conversation, Message, ConversationParticipant],
+        synchronize: config.get<string>('DB_SYNCHRONIZE', 'true') === 'true',
+      }),
     }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'public'),
@@ -33,8 +41,6 @@ import { ConversationParticipant } from './chat/Entity/conversation-participant.
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(AuthMiddleware)
-      .forRoutes('chat');
+    consumer.apply(AuthMiddleware).forRoutes('chat');
   }
 }
