@@ -13,57 +13,6 @@ Backend: NestJS 11, TypeORM, MySQL, Socket.IO, JWT auth, bcrypt for passwords.
 
 Frontend: React Native 0.86, React Navigation, socket.io-client, axios.
 
-## Running it
-
-You need Node 22.11+ and a running MySQL instance.
-
-### Backend
-
-```bash
-cd backend
-npm install
-npm run start:dev
-```
-
-DB connection is set in `src/app.module.ts` (host/user/password/database) - change it there for your local MySQL setup. Right now it's hardcoded, would be better in a `.env` at some point.
-
-Runs on port 3000 by default.
-
-### Mobile app
-
-```bash
-cd wp
-npm install
-```
-
-iOS only:
-```bash
-cd ios && pod install && cd ..
-```
-
-Then:
-```bash
-npm start
-```
-
-and in another terminal:
-```bash
-npm run android
-# or
-npm run ios
-```
-
-If you're testing on a real device or emulator, remember to point the frontend at your machine's actual IP instead of localhost, otherwise the socket connection won't work.
-
-## Tests
-
-```bash
-# backend
-cd backend && npm run test
-
-# frontend
-cd wp && npm run test
-```
 
 ## Notes
 
