@@ -12,10 +12,3 @@ Chat app (WhatsApp clone basically) with a NestJS backend and a React Native fro
 Backend: NestJS 11, TypeORM, MySQL, Socket.IO, JWT auth, bcrypt for passwords.
 
 Frontend: React Native 0.86, React Navigation, socket.io-client, axios.
-
-
-## Notes
-
-Database is named `whatsapp`, gets created automatically since `synchronize: true` is on in TypeORM - that's convenient for dev but shouldn't be used once this goes anywhere near production.
-
-No license set yet.
