@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 
 import { useUserContext } from '../Context/Auth';
+import { colors, spacing, radii, typography } from '../screens/theme';
 
 const LoginForm = () => {
     const { login, error, setError } = useUserContext();
@@ -17,58 +18,39 @@ const LoginForm = () => {
 
     const handleLogin = async () => {
         setError(null);
-
-        await login({
-            phoneNumber,
-            password,
-        });
+        await login({ phoneNumber, password });
     };
 
     return (
         <View style={styles.formBox}>
-            <Text style={styles.label}>
-                Numri i telefonit
-            </Text>
-
+            <Text style={styles.label}>Numri i telefonit</Text>
             <TextInput
                 style={styles.input}
                 placeholder="+355 69 123 4567"
+                placeholderTextColor={colors.textSecondary}
                 keyboardType="phone-pad"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
             />
 
-            <Text style={styles.label}>
-                Fjalekalimi
-            </Text>
-
+            <Text style={styles.label}>Fjalekalimi</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Shkruaj fjalëkalimin"
+                placeholderTextColor={colors.textSecondary}
                 secureTextEntry
                 value={password}
                 onChangeText={setPassword}
             />
 
-            {error && (
-                <Text style={styles.error}>
-                    {error}
-                </Text>
-            )}
+            {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable
-                style={styles.loginButton}
-                onPress={handleLogin}
-            >
-                <Text style={styles.loginButtonText}>
-                    Login
-                </Text>
+            <Pressable style={styles.loginButton} onPress={handleLogin}>
+                <Text style={styles.loginButtonText}>Login</Text>
             </Pressable>
 
             <Pressable style={styles.registerButton}>
-                <Text style={styles.registerButtonText}>
-                    Krijo një llogari
-                </Text>
+                <Text style={styles.registerButtonText}>Krijo një llogari</Text>
             </Pressable>
         </View>
     );
@@ -78,61 +60,53 @@ export default LoginForm;
 
 const styles = StyleSheet.create({
     formBox: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        padding: 20,
+        backgroundColor: colors.surface,
+        borderRadius: radii.lg,
+        padding: spacing.lg,
     },
-
     label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-        marginBottom: 6,
+        ...typography.subtitle,
+        color: colors.textPrimary,
+        marginBottom: spacing.xs,
     },
-
     input: {
         height: 48,
         borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 10,
-        paddingHorizontal: 12,
-        fontSize: 16,
-        marginBottom: 16,
-        color: '#333',
+        borderColor: colors.border,
+        borderRadius: radii.sm,
+        paddingHorizontal: spacing.md,
+        ...typography.body,
+        color: colors.textPrimary,
+        marginBottom: spacing.md,
+        backgroundColor: colors.background,
     },
-
     error: {
-        color: 'red',
-        marginBottom: 12,
+        color: colors.danger,
+        marginBottom: spacing.sm,
         textAlign: 'center',
     },
-
     loginButton: {
         height: 48,
-        backgroundColor: '#25D366',
-        borderRadius: 10,
+        backgroundColor: colors.primary,
+        borderRadius: radii.sm,
         justifyContent: 'center',
         alignItems: 'center',
     },
-
     loginButtonText: {
-        color: '#fff',
-        fontSize: 17,
-        fontWeight: 'bold',
+        ...typography.subtitle,
+        color: colors.textOnPrimary,
     },
-
     registerButton: {
         height: 46,
         borderWidth: 1,
-        borderColor: '#25D366',
-        borderRadius: 10,
+        borderColor: colors.primary,
+        borderRadius: radii.sm,
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 18,
+        marginTop: spacing.lg,
     },
-
     registerButtonText: {
-        color: '#075E54',
-        fontWeight: 'bold',
+        ...typography.subtitle,
+        color: colors.primaryDark,
     },
 });

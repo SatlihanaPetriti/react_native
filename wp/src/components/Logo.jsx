@@ -1,16 +1,13 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-
 import img from '../../assets/image/img_1.jpeg';
+import { colors, spacing, typography } from '../screens/theme';
 
 const Logo = () => {
     return (
         <View style={styles.header}>
             <View style={styles.logoCircle}>
-                <Image
-                    source={img}
-                    style={styles.logo}
-                />
+                <Image source={img} style={styles.logo} />
             </View>
             <Text style={styles.title}>WhatsApp Clone</Text>
             <Text style={styles.subtitle}>
@@ -25,9 +22,8 @@ export default Logo;
 const styles = StyleSheet.create({
     header: {
         alignItems: 'center',
-        marginBottom: 30,
+        marginBottom: spacing.xl,
     },
-
     logoCircle: {
         width: 120,
         height: 120,
@@ -35,23 +31,21 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 3,
+        borderColor: colors.textOnPrimary,
     },
-
     logo: {
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
     },
-
     title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: 'white',
+        ...typography.title,
+        color: colors.textOnPrimary,
     },
-
     subtitle: {
-        marginTop: 6,
-        fontSize: 15,
-        color: 'white',
+        marginTop: spacing.xs,
+        ...typography.body,
+        color: colors.primaryTint,
     },
 });

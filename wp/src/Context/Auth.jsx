@@ -27,7 +27,6 @@ const UserProvider = (props) => {
             const result = await login_user(data);
             console.log("LOGIN RESULT STATUS:", result.status);
             console.log("LOGIN RESULT DATA:", result.data);
-
             if (result.status === 201) {
                 setUser(result.data);
                 navigate('Welcome');

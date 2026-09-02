@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Binary } from 'react-native-svg';
 import { useChat } from '../Context/chatContext';
 import { useUserContext } from '../Context/Auth';
 import { colors, spacing, radii, typography } from './theme';
@@ -68,6 +67,7 @@ const WelcomeScreen = ({ navigation }) => {
                             onPress={() =>
                                 navigation.navigate('Chat', {
                                     conversationId: item.id,
+                                    title: item.name,
                                 })
                             }
                             style={({ pressed }) => [
@@ -83,7 +83,7 @@ const WelcomeScreen = ({ navigation }) => {
 
                             <View style={styles.rowBody}>
                                 <Text style={styles.rowTitle} numberOfLines={1}>
-                                    {item.title || `Bisedë ${item.id}`}
+                                    {item.name || `Bisedë ${item.id}`}
                                 </Text>
 
                                 {!!item.lastMessage && (
@@ -93,7 +93,6 @@ const WelcomeScreen = ({ navigation }) => {
                                 )}
                             </View>
                         </Pressable>
-
                         <Pressable
                             onPress={() => deleteConversation(item.id)}
                             style={({ pressed }) => [

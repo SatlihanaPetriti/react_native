@@ -7,202 +7,249 @@ import {
     FlatList,
     StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useChat } from '../Context/chatContext';
 import { useSocket } from '../Context/socketContext';
 import { useUserContext } from '../Context/Auth';
+import { colors, spacing, radii, typography } from './theme';
 
-const ChatScreen = ({ route }) => {
-    const { conversationId } = route.params;
+const formatTime = (date) => {
+    const d = date ? new Date(date) : new Date();
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const ChatScreen = ({ route, navigation }) => {
+    const { conversationId, title } = route.params;
 
     const [content, setContent] = useState('');
-
-    // User i loguar
     const { user } = useUserContext();
 
-    // HTTP
-    const {
-        messages,
-        setMessages,
-        loadMessages,
-    } = useChat();
-
-    // Socket
+    const { messages, setMessages, loadMessages } = useChat();
     const {
         socketConnected,
         connectSocket,
         joinRoom,
         sendMessage,
+        emitMarkAsRead,
         lastMessage,
+        lastReadUpdate,
     } = useSocket();
 
-    // Merr historikun dhe lidh socket
     useEffect(() => {
         loadMessages(conversationId);
-
         connectSocket();
-
         joinRoom(conversationId);
+        emitMarkAsRead(conversationId);
     }, [conversationId]);
-    // Kur vjen mesazh live, shtoje ne liste
+
+    // Mesazh i ri live
     useEffect(() => {
-        if (!lastMessage) {
-            return;
+        if (!lastMessage) return;
+
+        setMessages(prev => {
+            const exists = prev.some(
+                message => Number(message.id) === Number(lastMessage.id)
+            );
+
+            if (exists) {
+                return prev;
+            }
+
+            return [...prev, lastMessage];
+        });
+
+        if (Number(lastMessage.senderId) !== Number(user?.id)) {
+            emitMarkAsRead(conversationId);
         }
-
-        
-
-        setMessages(currentMessages => [
-            ...currentMessages,
-            lastMessage,
-        ]);
     }, [lastMessage, conversationId]);
 
-    const handleSend = () => {
-        if (!content.trim()) {
-            return;
-        }
+    // Dikush lexoi biseden - perditeso checkmarks live
+    useEffect(() => {
+        if (!lastReadUpdate) return;
+        if (Number(lastReadUpdate.conversationId) !== Number(conversationId)) return;
 
+        const readerId = lastReadUpdate.userId;
+        const readAt = new Date(lastReadUpdate.readAt);
+
+        setMessages(prev =>
+            prev.map(message => {
+                // Vetem mesazhet e dikujt tjeter, te derguara para readAt
+                if (Number(message.senderId) === Number(readerId)) return message;
+                if (new Date(message.createdAt) > readAt) return message;
+
+                const currentReadBy = message.readBy || [];
+                if (currentReadBy.includes(readerId)) return message;
+
+                return { ...message, readBy: [...currentReadBy, readerId] };
+            })
+        );
+    }, [lastReadUpdate, conversationId]);
+
+    const handleSend = () => {
+        if (!content.trim()) return;
         sendMessage(content);
         setContent('');
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
 
-            <Text style={styles.status}>
-                {socketConnected
-                    ? 'Connected'
-                    : 'Disconnected'}
-            </Text>
+            <View style={styles.header}>
+                <Pressable onPress={() => navigation.goBack()} hitSlop={10}>
+                    <Text style={styles.back}>‹</Text>
+                </Pressable>
+
+                <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                        {(title || 'C').charAt(0).toUpperCase()}
+                    </Text>
+                </View>
+
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.headerTitle} numberOfLines={1}>
+                        {title || `Bisedë ${conversationId}`}
+                    </Text>
+                    <Text style={styles.headerStatus}>
+                        {socketConnected ? 'online' : 'duke u lidhur...'}
+                    </Text>
+                </View>
+            </View>
 
             <FlatList
                 data={messages}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.messagesList}
                 renderItem={({ item }) => {
-                    const isMine =
-                        Number(item.senderId) ===
-                        Number(user?.id);
+                    const isMine = Number(item.senderId) === Number(user?.id);
+                    const isRead = isMine && item.readBy && item.readBy.length > 0;
 
                     return (
-                        <View
-                            style={[
-                                styles.messageBubble,
-                                isMine
-                                    ? styles.myMessage
-                                    : styles.otherMessage,
-                            ]}
-                        >
-                            <Text
+                        <View style={[styles.row, isMine ? styles.rowMine : styles.rowTheirs]}>
+                            <View
                                 style={[
-                                    styles.messageText,
-                                    isMine &&
-                                    styles.myMessageText,
+                                    styles.bubble,
+                                    isMine ? styles.bubbleMine : styles.bubbleTheirs,
                                 ]}
                             >
-                                {item.content}
-                            </Text>
+                                <Text style={isMine ? styles.textMine : styles.textTheirs}>
+                                    {item.content}
+                                </Text>
+
+                                <View style={styles.metaRow}>
+                                    <Text style={[styles.time, isMine && styles.timeMine]}>
+                                        {formatTime(item.createdAt)}
+                                    </Text>
+
+                                    {isMine && (
+                                        <Text style={[
+                                            styles.check,
+                                            isRead && styles.checkRead,
+                                        ]}>
+                                            {isRead ? '✓✓' : '✓'}
+                                        </Text>
+                                    )}
+                                </View>
+                            </View>
                         </View>
                     );
                 }}
             />
 
-            <View style={styles.inputContainer}>
+            <View style={styles.inputBar}>
                 <TextInput
                     value={content}
                     onChangeText={setContent}
-                    placeholder="Message..."
+                    placeholder="Shkruaj një mesazh..."
+                    placeholderTextColor={colors.textSecondary}
                     style={styles.input}
+                    multiline
                 />
-
-                <Pressable
-                    onPress={handleSend}
-                    style={styles.sendButton}
-                >
-                    <Text style={styles.sendButtonText}>
-                        Send
-                    </Text>
+                <Pressable onPress={handleSend} style={styles.sendButton}>
+                    <Text style={styles.sendIcon}>➤</Text>
                 </Pressable>
             </View>
 
-        </View>
+        </SafeAreaView>
     );
 };
 
 export default ChatScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        padding: 15,
-        backgroundColor: '#f5f5f5',
-    },
-
-    status: {
-        textAlign: 'center',
-        marginBottom: 10,
-    },
-
-    messagesList: {
-        paddingBottom: 10,
-    },
-
-    messageBubble: {
-        maxWidth: '75%',
-        padding: 10,
-        marginVertical: 5,
-        borderRadius: 12,
-    },
-
-    // Mesazhet e user-it te loguar
-    myMessage: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#25D366',
-    },
-
-    // Mesazhet e user-it tjeter
-    otherMessage: {
-        alignSelf: 'flex-start',
-        backgroundColor: '#ffffff',
-        borderWidth: 1,
-        borderColor: '#dddddd',
-    },
-
-    messageText: {
-        color: '#222222',
-        fontSize: 16,
-    },
-
-    myMessageText: {
-        color: '#ffffff',
-    },
-
-    inputContainer: {
+    container: { flex: 1, backgroundColor: colors.background },
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: spacing.sm,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        backgroundColor: colors.primary,
     },
-
+    back: { color: colors.textOnPrimary, fontSize: 28, marginRight: 4 },
+    avatar: {
+        width: 38, height: 38, borderRadius: radii.pill,
+        backgroundColor: colors.primaryDark,
+        alignItems: 'center', justifyContent: 'center',
+    },
+    avatarText: { color: colors.textOnPrimary, fontWeight: '700' },
+    headerTitle: { ...typography.subtitle, color: colors.textOnPrimary },
+    headerStatus: { ...typography.caption, color: colors.primaryTint },
+    messagesList: { padding: spacing.md, gap: spacing.xs },
+    row: { flexDirection: 'row' },
+    rowMine: { justifyContent: 'flex-end' },
+    rowTheirs: { justifyContent: 'flex-start' },
+    bubble: {
+        maxWidth: '78%',
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        marginVertical: 3,
+        borderRadius: radii.lg,
+    },
+    bubbleMine: {
+        backgroundColor: colors.bubbleMine,
+        borderBottomRightRadius: 4,
+    },
+    bubbleTheirs: {
+        backgroundColor: colors.bubbleTheirs,
+        borderBottomLeftRadius: 4,
+    },
+    textMine: { ...typography.body, color: colors.bubbleMineText },
+    textTheirs: { ...typography.body, color: colors.bubbleTheirsText },
+    metaRow: {
+        flexDirection: 'row',
+        alignSelf: 'flex-end',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 2,
+    },
+    time: { ...typography.caption, color: colors.textSecondary },
+    timeMine: { color: '#E7F3E7' },
+    check: { fontSize: 12, color: '#E7F3E7' },
+    checkRead: { color: '#4FC3F7' },
+    inputBar: {
+        flexDirection: 'row',
+        alignItems: 'flex-end',
+        gap: spacing.sm,
+        padding: spacing.sm,
+        backgroundColor: colors.surface,
+        borderTopWidth: 1,
+        borderTopColor: colors.border,
+    },
     input: {
         flex: 1,
-        borderWidth: 1,
-        borderColor: '#cccccc',
-        borderRadius: 20,
-        paddingHorizontal: 15,
-        paddingVertical: 10,
-        backgroundColor: '#ffffff',
+        maxHeight: 100,
+        borderRadius: radii.lg,
+        backgroundColor: colors.primaryTint,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        ...typography.body,
+        color: colors.textPrimary,
     },
-
     sendButton: {
-        backgroundColor: '#25D366',
-        paddingHorizontal: 18,
-        paddingVertical: 12,
-        borderRadius: 20,
+        width: 44, height: 44, borderRadius: radii.pill,
+        backgroundColor: colors.primary,
+        alignItems: 'center', justifyContent: 'center',
     },
-
-    sendButtonText: {
-        color: '#ffffff',
-        fontWeight: 'bold',
-    },
+    sendIcon: { color: colors.textOnPrimary, fontSize: 18 },
 });
