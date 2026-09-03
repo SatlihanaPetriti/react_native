@@ -1,6 +1,6 @@
 import { KeyboardAvoidingView, Platform, ScrollView, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import RegisterForm from '../components/RegisterForm';
+import RegisterForm from '../components/Registerform';
 import { colors } from './theme';
 
 const RegisterScreen = () => {

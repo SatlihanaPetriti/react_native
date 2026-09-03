@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
-import {
-    View,
-    Text,
-    TextInput,
-    Pressable,
-    StyleSheet,
-} from 'react-native';
-
+import { useState } from 'react';
+import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../Context/Auth';
 import { colors, spacing, radii, typography } from '../screens/theme';
 
 const LoginForm = () => {
     const { login, error, setError } = useUserContext();
+    const navigation = useNavigation();
 
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
@@ -49,7 +44,10 @@ const LoginForm = () => {
                 <Text style={styles.loginButtonText}>Login</Text>
             </Pressable>
 
-            <Pressable style={styles.registerButton}>
+            <Pressable
+                style={styles.registerButton}
+                onPress={() => navigation.navigate('Register')}
+            >
                 <Text style={styles.registerButtonText}>Krijo një llogari</Text>
             </Pressable>
         </View>

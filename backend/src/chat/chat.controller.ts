@@ -1,6 +1,5 @@
 import { Body, Controller, Get, Post, Param, Req, Delete } from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { Request } from 'express';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { AddParticipantDto } from './dto/add-participant.dto';
 
