@@ -8,12 +8,9 @@ const SocketProvider = ({ children }) => {
     const [socketConnected, setSocketConnected] = useState(false);
     const [currentConversationId, setCurrentConversationId] = useState(null);
     const [lastMessage, setLastMessage] = useState(null);
-    // Njoftimi i fundit qe dikush ka lexuar biseden
     const [lastReadUpdate, setLastReadUpdate] = useState(null);
-
     const connectSocket = () => {
         const socket = connect_socket();
-
         socket.off('connect');
         socket.off('disconnect');
         socket.off('messageReceived');
@@ -21,7 +18,6 @@ const SocketProvider = ({ children }) => {
         socket.off('roomError');
         socket.off('messageError');
         socket.off('messagesRead');
-
         socket.on('connect', () => {
             console.log('Socket connected:', socket.id);
             setSocketConnected(true);
@@ -79,7 +75,7 @@ const SocketProvider = ({ children }) => {
         });
     };
 
-    const sendMessage = content => {
+    const sendMessage = (conversationId, content) => {
         const socket = get_socket();
         const cleanContent = content.trim();
 
@@ -88,7 +84,7 @@ const SocketProvider = ({ children }) => {
             return;
         }
 
-        if (!currentConversationId) {
+        if (!conversationId) {
             console.log('No conversation selected');
             return;
         }
@@ -98,12 +94,11 @@ const SocketProvider = ({ children }) => {
         }
 
         socket.emit('sendMessage', {
-            conversationId: currentConversationId,
+            conversationId,
             content: cleanContent,
         });
     };
 
-    // Njofton backend qe useri e lexoi biseden (per checkmarks live)
     // Njofton backend qe useri e lexoi biseden (per checkmarks live)
     const emitMarkAsRead = (conversationId) => {
         const socket = get_socket();

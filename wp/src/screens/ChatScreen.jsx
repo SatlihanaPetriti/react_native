@@ -51,11 +51,9 @@ const ChatScreen = ({ route, navigation }) => {
             const exists = prev.some(
                 message => Number(message.id) === Number(lastMessage.id)
             );
-
             if (exists) {
                 return prev;
             }
-
             return [...prev, lastMessage];
         });
 
@@ -68,7 +66,6 @@ const ChatScreen = ({ route, navigation }) => {
     useEffect(() => {
         if (!lastReadUpdate) return;
         if (Number(lastReadUpdate.conversationId) !== Number(conversationId)) return;
-
         const readerId = lastReadUpdate.userId;
         const readAt = new Date(lastReadUpdate.readAt);
 
@@ -77,10 +74,8 @@ const ChatScreen = ({ route, navigation }) => {
                 // Vetem mesazhet e dikujt tjeter, te derguara para readAt
                 if (Number(message.senderId) === Number(readerId)) return message;
                 if (new Date(message.createdAt) > readAt) return message;
-
                 const currentReadBy = message.readBy || [];
                 if (currentReadBy.includes(readerId)) return message;
-
                 return { ...message, readBy: [...currentReadBy, readerId] };
             })
         );
@@ -88,7 +83,7 @@ const ChatScreen = ({ route, navigation }) => {
 
     const handleSend = () => {
         if (!content.trim()) return;
-        sendMessage(content);
+        sendMessage(conversationId, content);
         setContent('');
     };
 

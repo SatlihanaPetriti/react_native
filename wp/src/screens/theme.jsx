@@ -18,7 +18,6 @@ export const colors = {
     bubbleTheirs: '#EDF3EC',
     bubbleMineText: '#FFFFFF',
     bubbleTheirsText: '#14251A',
-
     danger: '#C1443B',
 };
 
