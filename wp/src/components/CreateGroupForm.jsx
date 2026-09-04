@@ -7,7 +7,6 @@ import {
     StyleSheet,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
 import { useChat } from '../Context/chatContext';
 import { colors, spacing, radii, typography } from '../screens/theme';
 
