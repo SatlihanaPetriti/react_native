@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, StatusBar, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
 import Logo from '../components/Logo';
-import LoginForm from '../components/LoginForm';
+import ProfileSetupForm from '../components/ProfileSetupForm';
 import { colors } from './theme';
 
-const LoginScreen = () => {
+const ProfileSetupScreen = () => {
     return (
         <>
             <StatusBar backgroundColor={colors.primary} barStyle="light-content" />
@@ -16,7 +16,7 @@ const LoginScreen = () => {
                 <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                     <View style={styles.container}>
                         <Logo />
-                        <LoginForm />
+                        <ProfileSetupForm />
                     </View>
                 </TouchableWithoutFeedback>
             </KeyboardAvoidingView>
@@ -24,7 +24,7 @@ const LoginScreen = () => {
     );
 };
 
-export default LoginScreen;
+export default ProfileSetupScreen;
 
 const styles = StyleSheet.create({
     container: {

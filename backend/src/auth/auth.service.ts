@@ -1,43 +1,48 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
-import { UserDto } from 'src/user/DTO/user.dto';
-import bcrypt from 'bcrypt';
 import { MyErrorHandler } from 'src/ErrorHandler/handleError';
 import { HttpStatus } from '@nestjs/common';
 
+const OTP_TTL_MS = 5 * 60 * 1000;
+
 @Injectable()
 export class AuthService {
+    // Ruajtje e perkohshme e kodeve OTP ne memorie (mjafton per dev/test)
+    private otpStore = new Map<string, { code: string; expiresAt: number }>();
+
     constructor(
         private userService: UserService,
         private jwtService: JwtService,
     ) { }
 
-    public async register(data: UserDto) {
-        const isUser = await this.userService.findByEmailOrNull(data.email);
-        if (isUser) {
-            throw new MyErrorHandler('User already exists', HttpStatus.CONFLICT) //409
-        }
-        const hashedPassword = await bcrypt.hash(data.password, 10)
-        const user = await this.userService.create({
-            ...data, password: hashedPassword,
-        });
-        const token = await this.jwtService.signAsync({ id: user.id });
-        return { user, token };
+    public requestOtp(phoneNumber: string) {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        this.otpStore.set(phoneNumber, { code, expiresAt: Date.now() + OTP_TTL_MS });
+
+        // DEV MODE: kthejme kodin direkt ne response, ne vend qe ta dergojme me SMS
+        return { message: 'Code sent', code };
     }
 
-    public async loginWithPhone(phoneNumber: string, password: string) {
-        const user = await this.userService.findByPhone(phoneNumber);
-        if (!user) {
-            throw new MyErrorHandler('User not found', HttpStatus.NOT_FOUND); // phoneNumber nk ekziston
+    public async verifyOtp(phoneNumber: string, code: string) {
+        const entry = this.otpStore.get(phoneNumber);
+        if (!entry || entry.expiresAt < Date.now()) {
+            throw new MyErrorHandler('Code expired, request a new one', HttpStatus.UNAUTHORIZED);
         }
+        if (entry.code !== code) {
+            throw new MyErrorHandler('Invalid code', HttpStatus.UNAUTHORIZED);
+        }
+        this.otpStore.delete(phoneNumber);
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            throw new MyErrorHandler('Invalid credentials', HttpStatus.UNAUTHORIZED); // password gabim
+        let user = await this.userService.findByPhone(phoneNumber);
+        let isNewUser = false;
+
+        if (!user) {
+            user = await this.userService.createByPhone(phoneNumber);
+            isNewUser = true;
         }
 
         const token = await this.jwtService.signAsync({ id: user.id });
-        return { user, token };
+        return { user, token, isNewUser };
     }
 }

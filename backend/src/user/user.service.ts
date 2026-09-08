@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './Entity/user.entity';
-import { UserDto } from './DTO/user.dto';
 import { HttpStatus } from '@nestjs/common';
 import { MyErrorHandler } from 'src/ErrorHandler/handleError';
 
@@ -12,15 +11,6 @@ export class UserService {
     constructor(
         @InjectRepository(UserEntity) private readonly userRepository: Repository<UserEntity>) { }
 
-
-    public async create(userDto: UserDto): Promise<UserEntity> {
-        try {
-            // const user = this.userRepository.create(userDto)
-            return await this.userRepository.save(userDto)
-        } catch (error) {
-            throw new MyErrorHandler('Failed to create user', HttpStatus.BAD_REQUEST);  //400      
-        }
-    }
 
     public async findAll(): Promise<UserEntity[]> {
         try {
@@ -36,10 +26,6 @@ export class UserService {
             throw new MyErrorHandler('User not found', HttpStatus.NOT_FOUND); //404
         }
         return user;
-    }
-
-    public async findByEmailOrNull(email: string): Promise<UserEntity | null> {
-        return await this.userRepository.findOne({ where: { email } });
     }
 
     public async findOne(id: number) {
@@ -66,5 +52,10 @@ export class UserService {
         return await this.userRepository.findOne({ where: { phoneNumber } });
     }
 
+    public async updateName(id: number, name: string): Promise<UserEntity> {
+        const user = await this.findOne(id);
+        user.name = name;
+        return await this.userRepository.save(user);
+    }
 
 }

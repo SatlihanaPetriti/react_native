@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { register_user, login_user, logout_user } from "../Services/Auth";
-import { save_session, get_session, clear_session } from "../Services/storage";
+import { request_otp, verify_otp, logout_user } from "../Services/Auth";
+import { update_name } from "../Services/user";
+import { save_session, save_user, get_session, clear_session } from "../Services/storage";
 import { navigate } from "../navigation/navigationRef";
 
 const UserContext = createContext({});
@@ -36,33 +37,46 @@ const UserProvider = (props) => {
         restoreSession();
     }, []);
 
-    const register = async (data) => {
+    // Kerkon nje kod OTP per numrin e dhene. Ne dev mode, backend e kthen kodin direkt.
+    const requestOtp = async (phoneNumber) => {
         try {
-            const result = await register_user(data);
-
-            if (result.status === 201) {
-                await save_session(result.data.user, result.data.token);
-                setAuthHeader(result.data.token);
-                setUser(result.data.user);
-                navigate('Welcome');
-            }
+            const result = await request_otp(phoneNumber);
+            return result.data;
         } catch (error) {
             setError(error.response?.data?.message);
+            throw error;
         }
     };
 
-    const login = async (data) => {
+    // Verifikon kodin OTP dhe hyn ne llogari (ose e krijon nese eshte numer i ri)
+    const verifyOtp = async (phoneNumber, code) => {
         try {
-            const result = await login_user(data);
+            const result = await verify_otp(phoneNumber, code);
+            const { user: verifiedUser, token, isNewUser } = result.data;
 
-            if (result.status === 201) {
-                await save_session(result.data.user, result.data.token);
-                setAuthHeader(result.data.token);
-                setUser(result.data.user);
-                navigate('Welcome');
-            }
+            await save_session(verifiedUser, token);
+            setAuthHeader(token);
+            setUser(verifiedUser);
+
+            navigate(isNewUser ? 'ProfileSetup' : 'Welcome');
         } catch (error) {
             setError(error.response?.data?.message);
+            throw error;
+        }
+    };
+
+    // Vendos emrin e vertete pas regjistrimit me OTP
+    const updateProfileName = async (name) => {
+        try {
+            const result = await update_name(user.id, name);
+
+            await save_user(result.data);
+            setUser(result.data);
+
+            navigate('Welcome');
+        } catch (error) {
+            setError(error.response?.data?.message);
+            throw error;
         }
     };
 
@@ -76,10 +90,19 @@ const UserProvider = (props) => {
         await clear_session();
         clearAuthHeader();
         setUser(null);
-        navigate('Login');
+        navigate('Phone');
     };
 
-    const values = { register, login, logout, user, error, setError, loading };
+    const values = {
+        user,
+        error,
+        setError,
+        loading,
+        requestOtp,
+        verifyOtp,
+        updateProfileName,
+        logout,
+    };
     return (
         <UserContext.Provider value={values}>
             {props.children}

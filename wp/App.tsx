@@ -6,10 +6,11 @@ import { navigationRef } from './src/navigation/navigationRef';
 import { UserProvider, useUserContext } from './src/Context/Auth';
 import { ChatProvider } from './src/Context/chatContext';
 import { SocketProvider } from './src/Context/socketContext';
-import LoginScreen from './src/screens/LoginScreen';
+import PhoneScreen from './src/screens/PhoneScreen';
+import OtpScreen from './src/screens/OtpScreen';
+import ProfileSetupScreen from './src/screens/ProfileSetupScreen';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import ChatScreen from './src/screens/ChatScreen';
-import RegisterScreen from './src/screens/RegisterScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CreateGroupScreen from './src/screens/CreateGroupScreen';
 import NewChatScreen from './src/screens/NewChatScreen';
@@ -31,17 +32,22 @@ const RootNavigator = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="Phone"
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen
-          name="Login"
-          component={LoginScreen}
+          name="Phone"
+          component={PhoneScreen}
         />
 
         <Stack.Screen
-          name="Register"
-          component={RegisterScreen}
+          name="Otp"
+          component={OtpScreen}
+        />
+
+        <Stack.Screen
+          name="ProfileSetup"
+          component={ProfileSetupScreen}
         />
 
         <Stack.Screen

@@ -2,17 +2,12 @@ import axios from "axios";
 
 const URL = "http://localhost:3000/auth";
 
-const register_user = async (data) => {
-    return axios.post(`${URL}/register`, data);
+const request_otp = async (phoneNumber) => {
+    return axios.post(`${URL}/otp/request`, { phoneNumber });
 };
 
-const login_user = async (data) => {
-    console.log("Login payload:", data);
-    const response = await axios.post(`${URL}/phone-login`, data);
-    console.log("Response from backend:", response);
-    console.log("User from backend:", response.data);
-
-    return response;
+const verify_otp = async (phoneNumber, code) => {
+    return axios.post(`${URL}/otp/verify`, { phoneNumber, code });
 };
 
 const logout_user = async () => {
@@ -20,4 +15,4 @@ const logout_user = async () => {
     return result;
 };
 
-export { register_user, login_user, logout_user };
+export { request_otp, verify_otp, logout_user };

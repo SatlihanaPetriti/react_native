@@ -4,16 +4,35 @@ import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../Context/Auth';
 import { colors, spacing, radii, typography } from '../screens/theme';
 
-const LoginForm = () => {
-    const { login, error, setError } = useUserContext();
+const PhoneForm = () => {
+    const { requestOtp, error, setError } = useUserContext();
     const navigation = useNavigation();
 
     const [phoneNumber, setPhoneNumber] = useState('');
-    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleLogin = async () => {
+    const handleContinue = async () => {
         setError(null);
-        await login({ phoneNumber, password });
+
+        if (!phoneNumber.trim()) {
+            setError('Shkruaj numrin e telefonit');
+            return;
+        }
+
+        try {
+            setLoading(true);
+
+            const { code } = await requestOtp(phoneNumber.trim());
+
+            navigation.navigate('Otp', {
+                phoneNumber: phoneNumber.trim(),
+                devCode: code,
+            });
+        } catch (err) {
+            // error eshte vendosur tashme nga context
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -28,33 +47,22 @@ const LoginForm = () => {
                 onChangeText={setPhoneNumber}
             />
 
-            <Text style={styles.label}>Fjalekalimi</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Shkruaj fjalëkalimin"
-                placeholderTextColor={colors.textSecondary}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
-
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable style={styles.loginButton} onPress={handleLogin}>
-                <Text style={styles.loginButtonText}>Login</Text>
-            </Pressable>
-
             <Pressable
-                style={styles.registerButton}
-                onPress={() => navigation.navigate('Register')}
+                style={[styles.continueButton, loading && styles.buttonDisabled]}
+                onPress={handleContinue}
+                disabled={loading}
             >
-                <Text style={styles.registerButtonText}>Krijo një llogari</Text>
+                <Text style={styles.continueButtonText}>
+                    {loading ? 'Duke dërguar kodin...' : 'Vazhdo'}
+                </Text>
             </Pressable>
         </View>
     );
 };
 
-export default LoginForm;
+export default PhoneForm;
 
 const styles = StyleSheet.create({
     formBox: {
@@ -83,28 +91,18 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
         textAlign: 'center',
     },
-    loginButton: {
+    continueButton: {
         height: 48,
         backgroundColor: colors.primary,
         borderRadius: radii.sm,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    loginButtonText: {
+    buttonDisabled: {
+        opacity: 0.6,
+    },
+    continueButtonText: {
         ...typography.subtitle,
         color: colors.textOnPrimary,
-    },
-    registerButton: {
-        height: 46,
-        borderWidth: 1,
-        borderColor: colors.primary,
-        borderRadius: radii.sm,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: spacing.lg,
-    },
-    registerButtonText: {
-        ...typography.subtitle,
-        color: colors.primaryDark,
     },
 });

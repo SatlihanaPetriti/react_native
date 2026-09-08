@@ -1,7 +1,6 @@
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserDto } from '../user/DTO/user.dto';
-import { PhoneLoginDto } from '../user/DTO/login.dto';
+import { RequestOtpDto, VerifyOtpDto } from '../user/DTO/otp.dto';
 import type { Response } from 'express';
 
 
@@ -9,18 +8,16 @@ import type { Response } from 'express';
 export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
-    @Post('register')
-    public async register(@Body() param: UserDto, @Res({ passthrough: true }) response: Response) {
-        const { user, token } = await this.authService.register(param);
-        response.cookie('jwt', token, { httpOnly: true, secure: false, sameSite: 'lax' });
-        return { user, token };
+    @Post('otp/request')
+    public requestOtp(@Body() param: RequestOtpDto) {
+        return this.authService.requestOtp(param.phoneNumber);
     }
 
-    @Post('phone-login')
-    public async phoneLogin(@Body() param: PhoneLoginDto, @Res({ passthrough: true }) response: Response) {
-        const { user, token } = await this.authService.loginWithPhone(param.phoneNumber, param.password);
+    @Post('otp/verify')
+    public async verifyOtp(@Body() param: VerifyOtpDto, @Res({ passthrough: true }) response: Response) {
+        const { user, token, isNewUser } = await this.authService.verifyOtp(param.phoneNumber, param.code);
         response.cookie('jwt', token, { httpOnly: true, secure: false, sameSite: 'lax' });
-        return { user, token };
+        return { user, token, isNewUser };
     }
 
     @Post('logout')
