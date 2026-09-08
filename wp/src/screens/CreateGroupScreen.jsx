@@ -14,7 +14,6 @@ const CreateGroupScreen = ({ navigation }) => {
                 >
                     <Text style={styles.back}>‹</Text>
                 </Pressable>
-
                 <Text style={styles.headerTitle}>
                     Create New Group
                 </Text>
