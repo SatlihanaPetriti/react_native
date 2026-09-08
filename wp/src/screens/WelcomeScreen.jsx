@@ -35,7 +35,7 @@ const WelcomeScreen = ({ navigation }) => {
 
     const handleNewGroup = () => {
         setShowCreateMenu(false);
-        navigation.navigate('NewGroup');
+        navigation.navigate('CreateGroup');
     };
 
     return (

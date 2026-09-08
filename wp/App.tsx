@@ -11,6 +11,7 @@ import ChatScreen from './src/screens/ChatScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import CreateGroupScreen from './src/screens/CreateGroupScreen';
+import NewChatScreen from './src/screens/NewChatScreen';
 const Stack = createNativeStackNavigator();
 
 const App = () => {
@@ -46,6 +47,10 @@ const App = () => {
                 <Stack.Screen
                   name="CreateGroup"
                   component={CreateGroupScreen}
+                />
+                <Stack.Screen
+                  name="NewChat"
+                  component={NewChatScreen}
                 />
               </Stack.Navigator>
             </NavigationContainer>
