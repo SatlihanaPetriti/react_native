@@ -12,7 +12,10 @@ export class AuthMiddleware implements NestMiddleware {
     ) { }
     
     async use(req: Request, res: Response, next: NextFunction) {
-        const token = req.cookies?.jwt; 
+        const bearer = req.headers.authorization?.startsWith('Bearer ')
+            ? req.headers.authorization.slice('Bearer '.length)
+            : null;
+        const token = req.cookies?.jwt ?? bearer;
         if (!token){
             throw new MyErrorHandler('No token', HttpStatus.UNAUTHORIZED);
         } 

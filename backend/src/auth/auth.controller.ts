@@ -1,7 +1,6 @@
 import { Controller, Post, Body, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserDto } from '../user/DTO/user.dto';
-import { UserEntity } from '../user/Entity/user.entity';
 import { PhoneLoginDto } from '../user/DTO/login.dto';
 import type { Response } from 'express';
 
@@ -11,17 +10,17 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @Post('register')
-    public async register(@Body() param: UserDto, @Res({ passthrough: true }) response: Response): Promise<UserEntity> {
+    public async register(@Body() param: UserDto, @Res({ passthrough: true }) response: Response) {
         const { user, token } = await this.authService.register(param);
         response.cookie('jwt', token, { httpOnly: true, secure: false, sameSite: 'lax' });
-        return user;
+        return { user, token };
     }
 
     @Post('phone-login')
-    public async phoneLogin(@Body() param: PhoneLoginDto, @Res({ passthrough: true }) response: Response): Promise<UserEntity> {
+    public async phoneLogin(@Body() param: PhoneLoginDto, @Res({ passthrough: true }) response: Response) {
         const { user, token } = await this.authService.loginWithPhone(param.phoneNumber, param.password);
         response.cookie('jwt', token, { httpOnly: true, secure: false, sameSite: 'lax' });
-        return user;
+        return { user, token };
     }
 
     @Post('logout')
