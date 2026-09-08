@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useUserContext } from '../Context/Auth';
+import AnimatedButton from './AnimatedButton';
+import OtpInput from './OtpInput';
 import { colors, spacing, radii, typography } from '../screens/theme';
+
+const CODE_LENGTH = 6;
 
 const OtpForm = () => {
     const { verifyOtp, requestOtp, error, setError } = useUserContext();
@@ -12,29 +16,39 @@ const OtpForm = () => {
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [resending, setResending] = useState(false);
+    const verifyingRef = useRef(false);
 
-    const handleVerify = async () => {
+    const handleVerify = async (submittedCode) => {
         setError(null);
 
-        if (!code.trim()) {
-            setError('Shkruaj kodin');
+        if (submittedCode.length < CODE_LENGTH || verifyingRef.current) {
             return;
         }
 
         try {
+            verifyingRef.current = true;
             setLoading(true);
-            await verifyOtp(phoneNumber, code.trim());
+            await verifyOtp(phoneNumber, submittedCode);
         } catch (err) {
             // error eshte vendosur tashme nga context
         } finally {
+            verifyingRef.current = false;
             setLoading(false);
         }
     };
+
+    // Verifikohet automatikisht sapo plotesohen te 6 shifrat
+    useEffect(() => {
+        if (code.length === CODE_LENGTH) {
+            handleVerify(code);
+        }
+    }, [code]);
 
     const handleResend = async () => {
         setError(null);
         try {
             setResending(true);
+            setCode('');
             await requestOtp(phoneNumber);
         } catch (err) {
             // error eshte vendosur tashme nga context
@@ -44,38 +58,26 @@ const OtpForm = () => {
     };
 
     return (
-        <View style={styles.formBox}>
-            <Text style={styles.subtitle}>
-                Kodi u dërgua te {phoneNumber}
-            </Text>
-
+        <View>
             {!!devCode && (
                 <Text style={styles.devHint}>
                     (dev mode) Kodi: {devCode}
                 </Text>
             )}
 
-            <Text style={styles.label}>Kodi</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="123456"
-                placeholderTextColor={colors.textSecondary}
-                keyboardType="number-pad"
-                value={code}
-                onChangeText={setCode}
-            />
+            <OtpInput value={code} onChangeText={setCode} length={CODE_LENGTH} />
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable
-                style={[styles.verifyButton, loading && styles.buttonDisabled]}
-                onPress={handleVerify}
-                disabled={loading}
+            <AnimatedButton
+                style={[styles.verifyButton, (loading || code.length < CODE_LENGTH) && styles.buttonDisabled]}
+                onPress={() => handleVerify(code)}
+                disabled={loading || code.length < CODE_LENGTH}
             >
                 <Text style={styles.verifyButtonText}>
                     {loading ? 'Duke verifikuar...' : 'Verifiko'}
                 </Text>
-            </Pressable>
+            </AnimatedButton>
 
             <Pressable
                 style={styles.resendButton}
@@ -93,40 +95,11 @@ const OtpForm = () => {
 export default OtpForm;
 
 const styles = StyleSheet.create({
-    formBox: {
-        backgroundColor: colors.surface,
-        borderRadius: radii.lg,
-        padding: spacing.lg,
-    },
-    subtitle: {
-        ...typography.body,
-        color: colors.textPrimary,
-        textAlign: 'center',
-        marginBottom: spacing.sm,
-    },
     devHint: {
         ...typography.caption,
         color: colors.textSecondary,
         textAlign: 'center',
         marginBottom: spacing.md,
-    },
-    label: {
-        ...typography.subtitle,
-        color: colors.textPrimary,
-        marginBottom: spacing.xs,
-    },
-    input: {
-        height: 48,
-        borderWidth: 1,
-        borderColor: colors.border,
-        borderRadius: radii.sm,
-        paddingHorizontal: spacing.md,
-        ...typography.body,
-        color: colors.textPrimary,
-        marginBottom: spacing.md,
-        backgroundColor: colors.background,
-        textAlign: 'center',
-        letterSpacing: 4,
     },
     error: {
         color: colors.danger,

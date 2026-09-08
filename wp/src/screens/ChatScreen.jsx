@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -17,6 +17,19 @@ import { colors, spacing, radii, typography } from './theme';
 const formatTime = (date) => {
     const d = date ? new Date(date) : new Date();
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const formatDateLabel = (date) => {
+    const d = new Date(date || Date.now());
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+
+    const isSameDay = (a, b) => a.toDateString() === b.toDateString();
+
+    if (isSameDay(d, today)) return 'Today';
+    if (isSameDay(d, yesterday)) return 'Yesterday';
+    return d.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 const ChatScreen = ({ route, navigation }) => {
@@ -81,6 +94,29 @@ const ChatScreen = ({ route, navigation }) => {
         );
     }, [lastReadUpdate, conversationId]);
 
+    // Fut nje divider date mes mesazheve te diteve te ndryshme
+    const listData = useMemo(() => {
+        const result = [];
+        let lastDateKey = null;
+
+        messages.forEach((message) => {
+            const dateKey = new Date(message.createdAt || Date.now()).toDateString();
+
+            if (dateKey !== lastDateKey) {
+                result.push({
+                    type: 'divider',
+                    id: `divider-${dateKey}`,
+                    label: formatDateLabel(message.createdAt),
+                });
+                lastDateKey = dateKey;
+            }
+
+            result.push({ type: 'message', ...message });
+        });
+
+        return result;
+    }, [messages]);
+
     const handleSend = () => {
         if (!content.trim()) return;
         sendMessage(conversationId, content);
@@ -101,21 +137,34 @@ const ChatScreen = ({ route, navigation }) => {
                     </Text>
                 </View>
 
-                <View style={{ flex: 1 }}>
+                <View style={styles.headerInfo}>
                     <Text style={styles.headerTitle} numberOfLines={1}>
                         {title || `Bisedë ${conversationId}`}
                     </Text>
                     <Text style={styles.headerStatus}>
-                        {socketConnected ? 'online' : 'duke u lidhur...'}
+                        {socketConnected ? 'Online' : 'duke u lidhur...'}
                     </Text>
                 </View>
+
+                <Text style={styles.headerIcon}>📞</Text>
+                <Text style={styles.headerIcon}>⋮</Text>
             </View>
 
             <FlatList
-                data={messages}
+                data={listData}
                 keyExtractor={(item) => item.id.toString()}
                 contentContainerStyle={styles.messagesList}
                 renderItem={({ item }) => {
+                    if (item.type === 'divider') {
+                        return (
+                            <View style={styles.dividerRow}>
+                                <View style={styles.dividerPill}>
+                                    <Text style={styles.dividerText}>{item.label}</Text>
+                                </View>
+                            </View>
+                        );
+                    }
+
                     const isMine = Number(item.senderId) === Number(user?.id);
                     const isRead = isMine && item.readBy && item.readBy.length > 0;
 
@@ -130,21 +179,21 @@ const ChatScreen = ({ route, navigation }) => {
                                 <Text style={isMine ? styles.textMine : styles.textTheirs}>
                                     {item.content}
                                 </Text>
+                            </View>
 
-                                <View style={styles.metaRow}>
-                                    <Text style={[styles.time, isMine && styles.timeMine]}>
-                                        {formatTime(item.createdAt)}
+                            <View style={[styles.metaRow, isMine ? styles.metaRowMine : styles.metaRowTheirs]}>
+                                <Text style={styles.time}>
+                                    {formatTime(item.createdAt)}
+                                </Text>
+
+                                {isMine && (
+                                    <Text style={[
+                                        styles.check,
+                                        isRead && styles.checkRead,
+                                    ]}>
+                                        {isRead ? '✓✓' : '✓'}
                                     </Text>
-
-                                    {isMine && (
-                                        <Text style={[
-                                            styles.check,
-                                            isRead && styles.checkRead,
-                                        ]}>
-                                            {isRead ? '✓✓' : '✓'}
-                                        </Text>
-                                    )}
-                                </View>
+                                )}
                             </View>
                         </View>
                     );
@@ -152,14 +201,17 @@ const ChatScreen = ({ route, navigation }) => {
             />
 
             <View style={styles.inputBar}>
+                <Text style={styles.emojiIcon}>🙂</Text>
+
                 <TextInput
                     value={content}
                     onChangeText={setContent}
-                    placeholder="Shkruaj një mesazh..."
+                    placeholder="Message..."
                     placeholderTextColor={colors.textSecondary}
                     style={styles.input}
                     multiline
                 />
+
                 <Pressable onPress={handleSend} style={styles.sendButton}>
                     <Text style={styles.sendIcon}>➤</Text>
                 </Pressable>
@@ -179,26 +231,48 @@ const styles = StyleSheet.create({
         gap: spacing.sm,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
-        backgroundColor: colors.primary,
+        backgroundColor: colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
     },
-    back: { color: colors.textOnPrimary, fontSize: 28, marginRight: 4 },
+    back: { color: colors.textPrimary, fontSize: 28, marginRight: 4 },
     avatar: {
-        width: 38, height: 38, borderRadius: radii.pill,
-        backgroundColor: colors.primaryDark,
+        width: 40, height: 40, borderRadius: radii.pill,
+        backgroundColor: colors.primary,
         alignItems: 'center', justifyContent: 'center',
     },
     avatarText: { color: colors.textOnPrimary, fontWeight: '700' },
-    headerTitle: { ...typography.subtitle, color: colors.textOnPrimary },
-    headerStatus: { ...typography.caption, color: colors.primaryTint },
-    messagesList: { padding: spacing.md, gap: spacing.xs },
-    row: { flexDirection: 'row' },
-    rowMine: { justifyContent: 'flex-end' },
-    rowTheirs: { justifyContent: 'flex-start' },
+    headerInfo: { flex: 1 },
+    headerTitle: { ...typography.subtitle, color: colors.textPrimary },
+    headerStatus: { ...typography.caption, color: colors.online, marginTop: 1 },
+    headerIcon: {
+        fontSize: 18,
+        color: colors.textPrimary,
+        marginLeft: spacing.sm,
+    },
+    messagesList: { padding: spacing.md, gap: 2 },
+
+    dividerRow: {
+        alignItems: 'center',
+        marginVertical: spacing.sm,
+    },
+    dividerPill: {
+        paddingHorizontal: spacing.md,
+        paddingVertical: 4,
+        borderRadius: radii.pill,
+        backgroundColor: colors.surface,
+    },
+    dividerText: {
+        ...typography.caption,
+        color: colors.textSecondary,
+    },
+
+    row: { marginVertical: 3, maxWidth: '80%' },
+    rowMine: { alignSelf: 'flex-end', alignItems: 'flex-end' },
+    rowTheirs: { alignSelf: 'flex-start', alignItems: 'flex-start' },
     bubble: {
-        maxWidth: '78%',
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
-        marginVertical: 3,
         borderRadius: radii.lg,
     },
     bubbleMine: {
@@ -213,29 +287,34 @@ const styles = StyleSheet.create({
     textTheirs: { ...typography.body, color: colors.bubbleTheirsText },
     metaRow: {
         flexDirection: 'row',
-        alignSelf: 'flex-end',
         alignItems: 'center',
         gap: 4,
         marginTop: 2,
+        paddingHorizontal: 2,
     },
+    metaRowMine: { alignSelf: 'flex-end' },
+    metaRowTheirs: { alignSelf: 'flex-start' },
     time: { ...typography.caption, color: colors.textSecondary },
-    timeMine: { color: '#E7F3E7' },
-    check: { fontSize: 12, color: '#E7F3E7' },
-    checkRead: { color: '#4FC3F7' },
+    check: { fontSize: 12, color: colors.textSecondary },
+    checkRead: { color: colors.primary },
     inputBar: {
         flexDirection: 'row',
-        alignItems: 'flex-end',
+        alignItems: 'center',
         gap: spacing.sm,
         padding: spacing.sm,
         backgroundColor: colors.surface,
         borderTopWidth: 1,
         borderTopColor: colors.border,
     },
+    emojiIcon: {
+        fontSize: 20,
+        marginLeft: spacing.xs,
+    },
     input: {
         flex: 1,
         maxHeight: 100,
-        borderRadius: radii.lg,
-        backgroundColor: colors.primaryTint,
+        borderRadius: radii.pill,
+        backgroundColor: colors.background,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
         ...typography.body,
@@ -243,7 +322,7 @@ const styles = StyleSheet.create({
     },
     sendButton: {
         width: 44, height: 44, borderRadius: radii.pill,
-        backgroundColor: colors.primary,
+        backgroundColor: colors.accentDark,
         alignItems: 'center', justifyContent: 'center',
     },
     sendIcon: { color: colors.textOnPrimary, fontSize: 18 },

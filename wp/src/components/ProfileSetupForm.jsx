@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { useUserContext } from '../Context/Auth';
+import AnimatedButton from './AnimatedButton';
 import { colors, spacing, radii, typography } from '../screens/theme';
 
 const ProfileSetupForm = () => {
@@ -28,8 +29,7 @@ const ProfileSetupForm = () => {
     };
 
     return (
-        <View style={styles.formBox}>
-            <Text style={styles.label}>Si quhesh?</Text>
+        <View>
             <TextInput
                 style={styles.input}
                 placeholder="Emri yt"
@@ -40,7 +40,7 @@ const ProfileSetupForm = () => {
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable
+            <AnimatedButton
                 style={[styles.saveButton, loading && styles.buttonDisabled]}
                 onPress={handleSave}
                 disabled={loading}
@@ -48,7 +48,7 @@ const ProfileSetupForm = () => {
                 <Text style={styles.saveButtonText}>
                     {loading ? 'Duke ruajtur...' : 'Vazhdo'}
                 </Text>
-            </Pressable>
+            </AnimatedButton>
         </View>
     );
 };
@@ -56,16 +56,6 @@ const ProfileSetupForm = () => {
 export default ProfileSetupForm;
 
 const styles = StyleSheet.create({
-    formBox: {
-        backgroundColor: colors.surface,
-        borderRadius: radii.lg,
-        padding: spacing.lg,
-    },
-    label: {
-        ...typography.subtitle,
-        color: colors.textPrimary,
-        marginBottom: spacing.xs,
-    },
     input: {
         height: 48,
         borderWidth: 1,

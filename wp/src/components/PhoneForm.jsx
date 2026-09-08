@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useUserContext } from '../Context/Auth';
+import AnimatedButton from './AnimatedButton';
 import { colors, spacing, radii, typography } from '../screens/theme';
 
 const PhoneForm = () => {
@@ -36,7 +37,7 @@ const PhoneForm = () => {
     };
 
     return (
-        <View style={styles.formBox}>
+        <View>
             <Text style={styles.label}>Numri i telefonit</Text>
             <TextInput
                 style={styles.input}
@@ -49,7 +50,7 @@ const PhoneForm = () => {
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable
+            <AnimatedButton
                 style={[styles.continueButton, loading && styles.buttonDisabled]}
                 onPress={handleContinue}
                 disabled={loading}
@@ -57,7 +58,7 @@ const PhoneForm = () => {
                 <Text style={styles.continueButtonText}>
                     {loading ? 'Duke dërguar kodin...' : 'Vazhdo'}
                 </Text>
-            </Pressable>
+            </AnimatedButton>
         </View>
     );
 };
@@ -65,11 +66,6 @@ const PhoneForm = () => {
 export default PhoneForm;
 
 const styles = StyleSheet.create({
-    formBox: {
-        backgroundColor: colors.surface,
-        borderRadius: radii.lg,
-        padding: spacing.lg,
-    },
     label: {
         ...typography.subtitle,
         color: colors.textPrimary,

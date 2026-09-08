@@ -1,24 +1,27 @@
 
 
 export const colors = {
-    primary: '#2c912f',
-    primaryDark: '#1f6b21',
-    primaryTint: '#E7F3E7',
+    primary: '#6B8F71',
+    primaryDark: '#54735C',
+    primaryTint: '#E7EDE4',
 
-    background: '#F6F8F5',
+    background: '#F6F4EF',
     surface: '#FFFFFF',
 
-    textPrimary: '#14251A',
-    textSecondary: '#6B7A70',
+    textPrimary: '#2B2B28',
+    textSecondary: '#8C8A80',
     textOnPrimary: '#FFFFFF',
 
-    border: '#E1E8DE',
+    border: '#E7E4DC',
 
-    bubbleMine: '#2c912f',
-    bubbleTheirs: '#EDF3EC',
+    bubbleMine: '#6B8F71',
+    bubbleTheirs: '#FFFFFF',
     bubbleMineText: '#FFFFFF',
-    bubbleTheirsText: '#14251A',
-    danger: '#C1443B',
+    bubbleTheirsText: '#2B2B28',
+    danger: '#C1666B',
+
+    online: '#6B8F71',
+    accentDark: '#2B2B28',
 };
 
 export const spacing = {
@@ -37,8 +40,8 @@ export const radii = {
 };
 
 export const typography = {
-    title: { fontSize: 24, fontWeight: '700' },
-    subtitle: { fontSize: 15, fontWeight: '500' },
+    title: { fontSize: 26, fontWeight: '700' },
+    subtitle: { fontSize: 15, fontWeight: '600' },
     body: { fontSize: 15, fontWeight: '400' },
     caption: { fontSize: 12, fontWeight: '400' },
 };
