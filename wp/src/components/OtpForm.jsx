@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { useUserContext } from '../Context/Auth';
@@ -16,23 +16,20 @@ const OtpForm = () => {
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [resending, setResending] = useState(false);
-    const verifyingRef = useRef(false);
 
     const handleVerify = async (submittedCode) => {
         setError(null);
 
-        if (submittedCode.length < CODE_LENGTH || verifyingRef.current) {
+        if (submittedCode.length < CODE_LENGTH || loading) {
             return;
         }
 
         try {
-            verifyingRef.current = true;
             setLoading(true);
             await verifyOtp(phoneNumber, submittedCode);
         } catch (err) {
             // error eshte vendosur tashme nga context
         } finally {
-            verifyingRef.current = false;
             setLoading(false);
         }
     };

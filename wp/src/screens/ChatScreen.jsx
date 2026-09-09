@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -151,7 +151,7 @@ const ChatScreen = ({ route, navigation }) => {
         );
     }, [lastReadUpdate, conversationId]);
 
-    const listData = useMemo(() => buildListWithDividers(messages), [messages]);
+    const listData = buildListWithDividers(messages);
 
     const handleSend = () => {
         if (!content.trim()) return;

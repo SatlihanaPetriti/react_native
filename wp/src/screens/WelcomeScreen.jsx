@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     View,
     Text,
@@ -164,13 +164,11 @@ const WelcomeScreen = ({ navigation }) => {
         });
     };
 
-    const filteredConversations = useMemo(() => {
-        if (!search.trim()) return conversations;
-
-        return conversations.filter(item =>
+    const filteredConversations = search.trim()
+        ? conversations.filter(item =>
             (item.name || '').toLowerCase().includes(search.trim().toLowerCase())
-        );
-    }, [conversations, search]);
+        )
+        : conversations;
 
     const handleNewChat = () => {
         setShowCreateMenu(false);
