@@ -32,6 +32,63 @@ const formatDateLabel = (date) => {
     return d.toLocaleDateString([], { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+// Fut nje divider date mes mesazheve te diteve te ndryshme, per FlatList
+const buildListWithDividers = (messages) => {
+    const result = [];
+    let lastDateKey = null;
+
+    messages.forEach((message) => {
+        const dateKey = new Date(message.createdAt || Date.now()).toDateString();
+
+        if (dateKey !== lastDateKey) {
+            result.push({
+                type: 'divider',
+                id: `divider-${dateKey}`,
+                label: formatDateLabel(message.createdAt),
+            });
+            lastDateKey = dateKey;
+        }
+
+        result.push({ type: 'message', ...message });
+    });
+
+    return result;
+};
+
+const DateDivider = ({ label }) => (
+    <View style={styles.dividerRow}>
+        <View style={styles.dividerPill}>
+            <Text style={styles.dividerText}>{label}</Text>
+        </View>
+    </View>
+);
+
+const MessageBubble = ({ message, isMine }) => {
+    const isRead = isMine && message.readBy && message.readBy.length > 0;
+
+    return (
+        <View style={[styles.row, isMine ? styles.rowMine : styles.rowTheirs]}>
+            <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
+                <Text style={isMine ? styles.textMine : styles.textTheirs}>
+                    {message.content}
+                </Text>
+            </View>
+
+            <View style={[styles.metaRow, isMine ? styles.metaRowMine : styles.metaRowTheirs]}>
+                <Text style={styles.time}>
+                    {formatTime(message.createdAt)}
+                </Text>
+
+                {isMine && (
+                    <Text style={[styles.check, isRead && styles.checkRead]}>
+                        {isRead ? '✓✓' : '✓'}
+                    </Text>
+                )}
+            </View>
+        </View>
+    );
+};
+
 const ChatScreen = ({ route, navigation }) => {
     const { conversationId, title } = route.params;
 
@@ -94,28 +151,7 @@ const ChatScreen = ({ route, navigation }) => {
         );
     }, [lastReadUpdate, conversationId]);
 
-    // Fut nje divider date mes mesazheve te diteve te ndryshme
-    const listData = useMemo(() => {
-        const result = [];
-        let lastDateKey = null;
-
-        messages.forEach((message) => {
-            const dateKey = new Date(message.createdAt || Date.now()).toDateString();
-
-            if (dateKey !== lastDateKey) {
-                result.push({
-                    type: 'divider',
-                    id: `divider-${dateKey}`,
-                    label: formatDateLabel(message.createdAt),
-                });
-                lastDateKey = dateKey;
-            }
-
-            result.push({ type: 'message', ...message });
-        });
-
-        return result;
-    }, [messages]);
+    const listData = useMemo(() => buildListWithDividers(messages), [messages]);
 
     const handleSend = () => {
         if (!content.trim()) return;
@@ -156,47 +192,11 @@ const ChatScreen = ({ route, navigation }) => {
                 contentContainerStyle={styles.messagesList}
                 renderItem={({ item }) => {
                     if (item.type === 'divider') {
-                        return (
-                            <View style={styles.dividerRow}>
-                                <View style={styles.dividerPill}>
-                                    <Text style={styles.dividerText}>{item.label}</Text>
-                                </View>
-                            </View>
-                        );
+                        return <DateDivider label={item.label} />;
                     }
 
                     const isMine = Number(item.senderId) === Number(user?.id);
-                    const isRead = isMine && item.readBy && item.readBy.length > 0;
-
-                    return (
-                        <View style={[styles.row, isMine ? styles.rowMine : styles.rowTheirs]}>
-                            <View
-                                style={[
-                                    styles.bubble,
-                                    isMine ? styles.bubbleMine : styles.bubbleTheirs,
-                                ]}
-                            >
-                                <Text style={isMine ? styles.textMine : styles.textTheirs}>
-                                    {item.content}
-                                </Text>
-                            </View>
-
-                            <View style={[styles.metaRow, isMine ? styles.metaRowMine : styles.metaRowTheirs]}>
-                                <Text style={styles.time}>
-                                    {formatTime(item.createdAt)}
-                                </Text>
-
-                                {isMine && (
-                                    <Text style={[
-                                        styles.check,
-                                        isRead && styles.checkRead,
-                                    ]}>
-                                        {isRead ? '✓✓' : '✓'}
-                                    </Text>
-                                )}
-                            </View>
-                        </View>
-                    );
+                    return <MessageBubble message={item} isMine={isMine} />;
                 }}
             />
 
