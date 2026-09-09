@@ -34,6 +34,90 @@ const getAvatarColor = (item) => {
     return AVATAR_COLORS[index];
 };
 
+const Avatar = ({ item, size = 52, style }) => (
+    <View
+        style={[
+            styles.avatar,
+            { width: size, height: size, backgroundColor: getAvatarColor(item) },
+            style,
+        ]}
+    >
+        <Text style={styles.avatarText}>{getInitial(item)}</Text>
+    </View>
+);
+
+const ConversationRow = ({ item, onPress, onLongPress }) => (
+    <Pressable
+        onPress={onPress}
+        onLongPress={onLongPress}
+        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+        <Avatar item={item} />
+
+        <View style={styles.rowBody}>
+            <Text style={styles.rowTitle} numberOfLines={1}>
+                {item.name || `Bisedë ${item.id}`}
+            </Text>
+
+            <Text style={styles.rowSubtitle} numberOfLines={1}>
+                {item.lastMessage || (item.isGroup ? 'Grup' : 'Tap për të biseduar')}
+            </Text>
+        </View>
+    </Pressable>
+);
+
+const PersonItem = ({ person, onPress }) => (
+    <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.personItem, pressed && styles.rowPressed]}
+    >
+        <Avatar item={person} size={56} style={styles.personAvatar} />
+        <Text style={styles.personName} numberOfLines={1}>{person.name}</Text>
+    </Pressable>
+);
+
+const CreateMenu = ({ animValue, onNewChat, onNewGroup }) => (
+    <Animated.View
+        style={[
+            styles.createMenu,
+            {
+                opacity: animValue,
+                transform: [
+                    { scale: animValue.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
+                ],
+            },
+        ]}
+    >
+        <Pressable
+            onPress={onNewChat}
+            style={({ pressed }) => [styles.createMenuItem, pressed && styles.createMenuItemPressed]}
+        >
+            <View style={styles.createMenuIconContainer}>
+                <Text style={styles.createMenuIcon}>+</Text>
+            </View>
+
+            <View style={styles.createMenuText}>
+                <Text style={styles.createMenuTitle}>Bisedë e re</Text>
+                <Text style={styles.createMenuSubtitle}>Fillo një bisedë me një person</Text>
+            </View>
+        </Pressable>
+
+        <Pressable
+            onPress={onNewGroup}
+            style={({ pressed }) => [styles.createMenuItem, pressed && styles.createMenuItemPressed]}
+        >
+            <View style={styles.createMenuIconContainer}>
+                <Text style={styles.createMenuIcon}>👥</Text>
+            </View>
+
+            <View style={styles.createMenuText}>
+                <Text style={styles.createMenuTitle}>Grup i ri</Text>
+                <Text style={styles.createMenuSubtitle}>Krijo një grup me disa persona</Text>
+            </View>
+        </Pressable>
+    </Animated.View>
+);
+
 const WelcomeScreen = ({ navigation }) => {
     const { conversations, loadConversations, deleteConversation, startConversation } = useChat();
     const { user, logout } = useUserContext();
@@ -64,7 +148,6 @@ const WelcomeScreen = ({ navigation }) => {
     useFocusEffect(
         useCallback(() => {
             loadConversations();
-
             get_all_users()
                 .then(response => {
                     setPeople(response.data.filter(person => person.id !== user?.id));
@@ -162,23 +245,7 @@ const WelcomeScreen = ({ navigation }) => {
                         keyExtractor={(item) => item.id.toString()}
                         contentContainerStyle={styles.peopleList}
                         renderItem={({ item }) => (
-                            <Pressable
-                                onPress={() => handleStartWithUser(item)}
-                                style={({ pressed }) => [
-                                    styles.personItem,
-                                    pressed && styles.rowPressed,
-                                ]}
-                            >
-                                <View style={[styles.avatar, styles.personAvatar, { backgroundColor: getAvatarColor(item) }]}>
-                                    <Text style={styles.avatarText}>
-                                        {getInitial(item)}
-                                    </Text>
-                                </View>
-
-                                <Text style={styles.personName} numberOfLines={1}>
-                                    {item.name}
-                                </Text>
-                            </Pressable>
+                            <PersonItem person={item} onPress={() => handleStartWithUser(item)} />
                         )}
                     />
                 )}
@@ -214,7 +281,8 @@ const WelcomeScreen = ({ navigation }) => {
                     </View>
                 }
                 renderItem={({ item }) => (
-                    <Pressable
+                    <ConversationRow
+                        item={item}
                         onPress={() =>
                             navigation.navigate('Chat', {
                                 conversationId: item.id,
@@ -222,81 +290,17 @@ const WelcomeScreen = ({ navigation }) => {
                             })
                         }
                         onLongPress={() => handleDeletePress(item)}
-                        style={({ pressed }) => [
-                            styles.row,
-                            pressed && styles.rowPressed,
-                        ]}
-                    >
-                        {/* AVATAR */}
-                        <View style={[styles.avatar, { backgroundColor: getAvatarColor(item) }]}>
-                            <Text style={styles.avatarText}>
-                                {getInitial(item)}
-                            </Text>
-                        </View>
-
-                        {/* CHAT INFO */}
-                        <View style={styles.rowBody}>
-                            <Text style={styles.rowTitle} numberOfLines={1}>
-                                {item.name || `Bisedë ${item.id}`}
-                            </Text>
-
-                            <Text style={styles.rowSubtitle} numberOfLines={1}>
-                                {item.lastMessage || (item.isGroup ? 'Grup' : 'Tap për të biseduar')}
-                            </Text>
-                        </View>
-                    </Pressable>
+                    />
                 )}
             />
 
             {/* CREATE MENU */}
             {showCreateMenu && (
-                <Animated.View
-                    style={[
-                        styles.createMenu,
-                        {
-                            opacity: menuAnim,
-                            transform: [
-                                { scale: menuAnim.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
-                            ],
-                        },
-                    ]}
-                >
-                    {/* NEW CHAT */}
-                    <Pressable
-                        onPress={handleNewChat}
-                        style={({ pressed }) => [
-                            styles.createMenuItem,
-                            pressed && styles.createMenuItemPressed,
-                        ]}
-                    >
-                        <View style={styles.createMenuIconContainer}>
-                            <Text style={styles.createMenuIcon}>+</Text>
-                        </View>
-
-                        <View style={styles.createMenuText}>
-                            <Text style={styles.createMenuTitle}>Bisedë e re</Text>
-                            <Text style={styles.createMenuSubtitle}>Fillo një bisedë me një person</Text>
-                        </View>
-                    </Pressable>
-
-                    {/* NEW GROUP */}
-                    <Pressable
-                        onPress={handleNewGroup}
-                        style={({ pressed }) => [
-                            styles.createMenuItem,
-                            pressed && styles.createMenuItemPressed,
-                        ]}
-                    >
-                        <View style={styles.createMenuIconContainer}>
-                            <Text style={styles.createMenuIcon}>👥</Text>
-                        </View>
-
-                        <View style={styles.createMenuText}>
-                            <Text style={styles.createMenuTitle}>Grup i ri</Text>
-                            <Text style={styles.createMenuSubtitle}>Krijo një grup me disa persona</Text>
-                        </View>
-                    </Pressable>
-                </Animated.View>
+                <CreateMenu
+                    animValue={menuAnim}
+                    onNewChat={handleNewChat}
+                    onNewGroup={handleNewGroup}
+                />
             )}
 
             {/* FAB */}
@@ -399,8 +403,6 @@ const styles = StyleSheet.create({
     },
 
     personAvatar: {
-        width: 56,
-        height: 56,
         marginRight: 0,
         borderWidth: 2,
         borderColor: colors.surface,

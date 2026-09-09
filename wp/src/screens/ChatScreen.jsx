@@ -201,7 +201,7 @@ const ChatScreen = ({ route, navigation }) => {
             />
 
             <View style={styles.inputBar}>
-                <Text style={styles.emojiIcon}>🙂</Text>
+                <Text style={styles.emojiIcon}></Text>
 
                 <TextInput
                     value={content}
