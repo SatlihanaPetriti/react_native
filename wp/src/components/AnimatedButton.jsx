@@ -4,35 +4,19 @@ import { Animated, Pressable, StyleSheet } from 'react-native';
 const AnimatedButton = ({ onPress, disabled, style, children }) => {
     const scale = useRef(new Animated.Value(1)).current;
 
-    const handlePressIn = () => {
-        Animated.spring(scale, {
-            toValue: 0.96,
-            speed: 50,
-            useNativeDriver: true,
-        }).start();
-    };
-
-    const handlePressOut = () => {
-        Animated.spring(scale, {
-            toValue: 1,
-            speed: 30,
-            useNativeDriver: true,
-        }).start();
+    const animateTo = (toValue, speed) => {
+        Animated.spring(scale, { toValue, speed, useNativeDriver: true }).start();
     };
 
     return (
         <Pressable
             onPress={onPress}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
+            onPressIn={() => animateTo(0.96, 50)}
+            onPressOut={() => animateTo(1, 30)}
             disabled={disabled}
         >
             <Animated.View
-                style={[
-                    style,
-                    { transform: [{ scale }] },
-                    disabled && styles.disabled,
-                ]}
+                style={[style, { transform: [{ scale }] }, disabled && styles.disabled]}
             >
                 {children}
             </Animated.View>
