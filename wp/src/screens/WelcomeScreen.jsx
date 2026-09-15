@@ -17,106 +17,10 @@ import { useChat } from '../Context/chatContext';
 import { useUserContext } from '../Context/Auth';
 import { get_all_users } from '../Services/user';
 import AnimatedButton from '../components/AnimatedButton';
+import ConversationRow from '../components/ConversationRow';
+import PersonItem from '../components/PersonItem';
+import CreateMenu from '../components/CreateMenu';
 import { colors, spacing, radii, typography } from './theme';
-
-const AVATAR_COLORS = [
-    '#6B8F71', '#C97C5D', '#5B8DEF', '#9B7BC9', '#D08A9B', '#4CA8A8',
-];
-
-const getInitial = (item) => {
-    const label = item?.title || item?.name || `${item.id}`;
-    return label.toString().charAt(0).toUpperCase();
-};
-
-const getAvatarColor = (item) => {
-    const key = item?.name || `${item.id}`;
-    const index = key.charCodeAt(0) % AVATAR_COLORS.length;
-    return AVATAR_COLORS[index];
-};
-
-const Avatar = ({ item, size = 52, style }) => (
-    <View
-        style={[
-            styles.avatar,
-            { width: size, height: size, backgroundColor: getAvatarColor(item) },
-            style,
-        ]}
-    >
-        <Text style={styles.avatarText}>{getInitial(item)}</Text>
-    </View>
-);
-
-const ConversationRow = ({ item, onPress, onLongPress }) => (
-    <Pressable
-        onPress={onPress}
-        onLongPress={onLongPress}
-        style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-    >
-        <Avatar item={item} />
-
-        <View style={styles.rowBody}>
-            <Text style={styles.rowTitle} numberOfLines={1}>
-                {item.name || `Bisedë ${item.id}`}
-            </Text>
-
-            <Text style={styles.rowSubtitle} numberOfLines={1}>
-                {item.lastMessage || (item.isGroup ? 'Grup' : 'Tap për të biseduar')}
-            </Text>
-        </View>
-    </Pressable>
-);
-
-const PersonItem = ({ person, onPress }) => (
-    <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [styles.personItem, pressed && styles.rowPressed]}
-    >
-        <Avatar item={person} size={56} style={styles.personAvatar} />
-        <Text style={styles.personName} numberOfLines={1}>{person.name}</Text>
-    </Pressable>
-);
-
-const CreateMenu = ({ animValue, onNewChat, onNewGroup }) => (
-    <Animated.View
-        style={[
-            styles.createMenu,
-            {
-                opacity: animValue,
-                transform: [
-                    { scale: animValue.interpolate({ inputRange: [0, 1], outputRange: [0.9, 1] }) },
-                ],
-            },
-        ]}
-    >
-        <Pressable
-            onPress={onNewChat}
-            style={({ pressed }) => [styles.createMenuItem, pressed && styles.createMenuItemPressed]}
-        >
-            <View style={styles.createMenuIconContainer}>
-                <Text style={styles.createMenuIcon}>+</Text>
-            </View>
-
-            <View style={styles.createMenuText}>
-                <Text style={styles.createMenuTitle}>Bisedë e re</Text>
-                <Text style={styles.createMenuSubtitle}>Fillo një bisedë me një person</Text>
-            </View>
-        </Pressable>
-
-        <Pressable
-            onPress={onNewGroup}
-            style={({ pressed }) => [styles.createMenuItem, pressed && styles.createMenuItemPressed]}
-        >
-            <View style={styles.createMenuIconContainer}>
-                <Text style={styles.createMenuIcon}>👥</Text>
-            </View>
-
-            <View style={styles.createMenuText}>
-                <Text style={styles.createMenuTitle}>Grup i ri</Text>
-                <Text style={styles.createMenuSubtitle}>Krijo një grup me disa persona</Text>
-            </View>
-        </Pressable>
-    </Animated.View>
-);
 
 const WelcomeScreen = ({ navigation }) => {
     const { conversations, loadConversations, deleteConversation, startConversation } = useChat();
@@ -395,80 +299,6 @@ const styles = StyleSheet.create({
         gap: spacing.md,
     },
 
-    personItem: {
-        alignItems: 'center',
-        width: 64,
-    },
-
-    personAvatar: {
-        marginRight: 0,
-        borderWidth: 2,
-        borderColor: colors.surface,
-    },
-
-    personName: {
-        ...typography.caption,
-        color: colors.textPrimary,
-        marginTop: spacing.xs,
-        textAlign: 'center',
-    },
-
-    /* CREATE MENU */
-    createMenu: {
-        position: 'absolute',
-        right: spacing.lg,
-        bottom: 96,
-        width: 240,
-        backgroundColor: colors.surface,
-        borderRadius: radii.md,
-        overflow: 'hidden',
-        shadowColor: colors.accentDark,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.12,
-        shadowRadius: 20,
-        elevation: 8,
-    },
-
-    createMenuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        padding: spacing.md,
-    },
-
-    createMenuItemPressed: {
-        backgroundColor: colors.primaryTint,
-    },
-
-    createMenuIconContainer: {
-        width: 42,
-        height: 42,
-        borderRadius: radii.pill,
-        backgroundColor: colors.primaryTint,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: spacing.md,
-    },
-
-    createMenuIcon: {
-        fontSize: 22,
-        color: colors.primary,
-    },
-
-    createMenuText: {
-        flex: 1,
-    },
-
-    createMenuTitle: {
-        ...typography.subtitle,
-        color: colors.textPrimary,
-    },
-
-    createMenuSubtitle: {
-        ...typography.caption,
-        color: colors.textSecondary,
-        marginTop: 2,
-    },
-
     /* FAB */
     fab: {
         position: 'absolute',
@@ -506,56 +336,6 @@ const styles = StyleSheet.create({
 
     separator: {
         height: spacing.sm,
-    },
-
-    /* CHAT ROW */
-    row: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.surface,
-        borderRadius: radii.md,
-        padding: spacing.md,
-        shadowColor: colors.accentDark,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-        elevation: 1,
-    },
-
-    rowPressed: {
-        opacity: 0.7,
-    },
-
-    /* AVATAR */
-    avatar: {
-        width: 52,
-        height: 52,
-        borderRadius: radii.pill,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: spacing.md,
-    },
-
-    avatarText: {
-        color: colors.textOnPrimary,
-        fontWeight: '700',
-        fontSize: 20,
-    },
-
-    /* CHAT INFO */
-    rowBody: {
-        flex: 1,
-    },
-
-    rowTitle: {
-        ...typography.subtitle,
-        color: colors.textPrimary,
-    },
-
-    rowSubtitle: {
-        ...typography.body,
-        color: colors.textSecondary,
-        marginTop: 2,
     },
 
     /* EMPTY STATE */
