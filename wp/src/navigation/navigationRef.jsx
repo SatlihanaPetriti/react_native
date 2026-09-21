@@ -2,8 +2,9 @@ import { createNavigationContainerRef } from '@react-navigation/native';
 
 export const navigationRef = createNavigationContainerRef();
 
-export function navigate(name, params) {
+// Boshatis stack-un dhe lë vetëm këtë ekran, ashtu që "mbrapa" të mos kthejë te login-i
+export function resetTo(name) {
     if (navigationRef.isReady()) {
-        navigationRef.navigate(name, params);
+        navigationRef.reset({ index: 0, routes: [{ name }] });
     }
 }

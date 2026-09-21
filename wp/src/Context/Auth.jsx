@@ -3,7 +3,7 @@ import axios from "axios";
 import { request_otp, verify_otp, logout_user } from "../Services/Auth";
 import { update_profile } from "../Services/user";
 import { save_session, save_user, get_session, clear_session } from "../Services/storage";
-import { navigate } from "../navigation/navigationRef";
+import { resetTo } from "../navigation/navigationRef";
 
 const UserContext = createContext({});
 
@@ -14,6 +14,9 @@ const setAuthHeader = (token) => {
 const clearAuthHeader = () => {
     delete axios.defaults.headers.common.Authorization;
 };
+
+// Profili eshte i plote kur useri ka mbiemer dhe email (emri vendoset gjithmone gjate krijimit)
+const isProfileComplete = (user) => !!user?.lastname && !!user?.email;
 
 const UserProvider = (props) => {
     const [user, setUser] = useState(null);
@@ -51,13 +54,13 @@ const UserProvider = (props) => {
     const verifyOtp = async (phoneNumber, code) => {
         try {
             const result = await verify_otp(phoneNumber, code);
-            const { user: verifiedUser, token, isNewUser } = result.data;
+            const { user: verifiedUser, token } = result.data;
 
             await save_session(verifiedUser, token);
             setAuthHeader(token);
             setUser(verifiedUser);
 
-            navigate(isNewUser ? 'ProfileSetup' : 'Welcome');
+            resetTo(isProfileComplete(verifiedUser) ? 'Welcome' : 'ProfileSetup');
         } catch (error) {
             setError(error.response?.data?.message);
             throw error;
@@ -72,7 +75,7 @@ const UserProvider = (props) => {
             await save_user(result.data);
             setUser(result.data);
 
-            navigate('Welcome');
+            resetTo('Welcome');
         } catch (error) {
             setError(error.response?.data?.message);
             throw error;
@@ -89,7 +92,7 @@ const UserProvider = (props) => {
         await clear_session();
         clearAuthHeader();
         setUser(null);
-        navigate('Phone');
+        resetTo('Phone');
     };
 
     const values = {
@@ -97,6 +100,7 @@ const UserProvider = (props) => {
         error,
         setError,
         loading,
+        profileComplete: isProfileComplete(user),
         requestOtp,
         verifyOtp,
         updateProfile,

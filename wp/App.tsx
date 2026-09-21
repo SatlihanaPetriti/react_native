@@ -19,7 +19,7 @@ const Stack = createNativeStackNavigator();
 
 // Pret derisa te kontrollohet nese ka session te ruajtur ne AsyncStorage
 const RootNavigator = () => {
-  const { loading, user } = useUserContext();
+  const { loading, user, profileComplete } = useUserContext();
 
   if (loading) {
     return (
@@ -32,7 +32,7 @@ const RootNavigator = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       <Stack.Navigator
-        initialRouteName={user ? 'Welcome' : 'Phone'}
+        initialRouteName={!user ? 'Phone' : profileComplete ? 'Welcome' : 'ProfileSetup'}
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen
