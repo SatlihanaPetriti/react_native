@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { useUserContext } from './Auth';
 import {
     start_conversation,
     create_group,
@@ -13,8 +14,18 @@ import {
 const ChatContext = createContext();
 const ChatProvider = ({ children }) => {
 
+    const { user } = useUserContext();
+
     const [conversations, setConversations] = useState([]);
     const [messages, setMessages] = useState([]);
+
+    // Kur useri del (logout), pastro bisedat qe kishte ngarkuar
+    useEffect(() => {
+        if (!user) {
+            setConversations([]);
+            setMessages([]);
+        }
+    }, [user]);
 
     const startConversation = async userId => {
         const response = await start_conversation(userId);

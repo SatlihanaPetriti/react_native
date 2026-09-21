@@ -36,12 +36,10 @@ export class AuthService {
 
         let user = await this.userService.findByPhone(phoneNumber);
         let isNewUser = false;
-
         if (!user) {
             user = await this.userService.createByPhone(phoneNumber);
             isNewUser = true;
         }
-
         const token = await this.jwtService.signAsync({ id: user.id });
         return { user, token, isNewUser };
     }

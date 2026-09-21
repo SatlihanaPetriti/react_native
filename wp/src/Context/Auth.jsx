@@ -28,7 +28,6 @@ const UserProvider = (props) => {
             if (token && storedUser) {
                 setAuthHeader(token);
                 setUser(storedUser);
-                navigate('Welcome');
             }
 
             setLoading(false);

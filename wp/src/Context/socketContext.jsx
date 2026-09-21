@@ -1,10 +1,13 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 
+import { useUserContext } from './Auth';
 import { connect_socket, disconnect_socket, get_socket } from '../Services/socket';
 
 const SocketContext = createContext();
 
 const SocketProvider = ({ children }) => {
+    const { user } = useUserContext();
+
     const [socketConnected, setSocketConnected] = useState(false);
     const [currentConversationId, setCurrentConversationId] = useState(null);
     const [lastMessage, setLastMessage] = useState(null);
@@ -128,6 +131,13 @@ const SocketProvider = ({ children }) => {
         setLastMessage(null);
         setLastReadUpdate(null);
     };
+
+    // Kur useri del, mbyll lidhjen - ndryshe socket-i mbetet i autentikuar si useri i vjeter
+    useEffect(() => {
+        if (!user) {
+            disconnectSocket();
+        }
+    }, [user]);
 
     return (
         <SocketContext.Provider

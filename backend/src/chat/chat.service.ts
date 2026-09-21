@@ -344,7 +344,7 @@ export class ChatService {
             conversationId,
             userId,
             readAt: participant.lastReadAt,
-        };
+        }
     }
 
     // Merr conversations e user-it (1:1 dhe grupe)

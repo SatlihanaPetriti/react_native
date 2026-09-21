@@ -24,16 +24,15 @@ export class ChatGateway implements OnGatewayConnection {
   // autentikimi kur lidhet socketi, kontrollon nese ka cookie dhe nese ka JWT valide, nese jo e disconnecton socketin
   public async handleConnection(client: Socket) {
     console.log('New socket connection');
-    // Merr cookie nga handshake
+    // JWT vjen nga handshake.auth (app mobile), ose nga cookie si alternative
+    const authToken = client.handshake.auth?.token;
     const cookieHeader = client.handshake.headers.cookie;
-    console.log('Cookie:', cookieHeader);
-    if (!cookieHeader) {
-      console.log('No cookie found');
-      client.disconnect();
-      return;
-    }
-    // Merr JWT nga cookie
-    const token = getTokenFromCookie(cookieHeader);
+    const token =
+      typeof authToken === 'string' && authToken
+        ? authToken
+        : cookieHeader
+          ? getTokenFromCookie(cookieHeader)
+          : undefined;
 
     if (!token) {
       console.log('No JWT found');

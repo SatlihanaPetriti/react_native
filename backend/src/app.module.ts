@@ -41,6 +41,6 @@ import { ConversationParticipant } from './chat/Entity/conversation-participant.
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthMiddleware).forRoutes('chat');
+    consumer.apply(AuthMiddleware).forRoutes('chat', 'user');
   }
 }

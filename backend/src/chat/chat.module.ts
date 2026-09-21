@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { JwtModule } from '@nestjs/jwt';
+import { AuthModule } from '../auth/auth.module';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
 import { ChatController } from './chat.controller';
@@ -14,12 +14,7 @@ import { ConversationParticipant } from './Entity/conversation-participant.entit
     TypeOrmModule.forFeature([Conversation, Message, ConversationParticipant]),
 
     UserModule,
-    JwtModule.register({
-      secret: 'secret-key',
-      signOptions: {
-        expiresIn: '1d',
-      },
-    }),
+    AuthModule,
   ],
   providers: [
     ChatService,

@@ -1,4 +1,5 @@
 import { io } from 'socket.io-client';
+import { get_session } from './storage';
 
 const SOCKET_URL = 'http://localhost:3000';
 
@@ -11,6 +12,12 @@ const connect_socket = () => {
             transports: ['websocket'],
             withCredentials: true,
             autoConnect: false,
+            // token-i lexohet nga AsyncStorage sa here lidhet/rilidhet, njesoj si header-i i axios
+            auth: (callback) => {
+                get_session()
+                    .then(({ token }) => callback({ token }))
+                    .catch(() => callback({}));
+            },
         });
     }
 
