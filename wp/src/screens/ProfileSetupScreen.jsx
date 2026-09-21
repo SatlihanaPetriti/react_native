@@ -4,8 +4,8 @@ import ProfileSetupForm from '../components/ProfileSetupForm';
 const ProfileSetupScreen = () => {
     return (
         <AuthLayout
-            title="Si quhesh?"
-            subtitle="Kjo do të jetë emri yt te bisedat"
+            title="Plotëso profilin"
+            subtitle="Këto të dhëna shfaqen te bisedat e tua"
             step={3}
         >
             <ProfileSetupForm />

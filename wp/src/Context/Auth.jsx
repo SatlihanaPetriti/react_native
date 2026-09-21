@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { request_otp, verify_otp, logout_user } from "../Services/Auth";
-import { update_name } from "../Services/user";
+import { update_profile } from "../Services/user";
 import { save_session, save_user, get_session, clear_session } from "../Services/storage";
 import { navigate } from "../navigation/navigationRef";
 
@@ -64,10 +64,10 @@ const UserProvider = (props) => {
         }
     };
 
-    // Vendos emrin e vertete pas regjistrimit me OTP
-    const updateProfileName = async (name) => {
+    // Plotëson profilin (emri, mbiemri, email) pas regjistrimit me OTP
+    const updateProfile = async (data) => {
         try {
-            const result = await update_name(user.id, name);
+            const result = await update_profile(user.id, data);
 
             await save_user(result.data);
             setUser(result.data);
@@ -99,7 +99,7 @@ const UserProvider = (props) => {
         loading,
         requestOtp,
         verifyOtp,
-        updateProfileName,
+        updateProfile,
         logout,
     };
     return (

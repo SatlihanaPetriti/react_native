@@ -5,22 +5,33 @@ import AnimatedButton from './AnimatedButton';
 import { colors, spacing, radii, typography } from '../screens/theme';
 
 const ProfileSetupForm = () => {
-    const { updateProfileName, error, setError } = useUserContext();
+    const { updateProfile, error, setError } = useUserContext();
 
     const [name, setName] = useState('');
+    const [lastname, setLastname] = useState('');
+    const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSave = async () => {
         setError(null);
 
-        if (!name.trim()) {
-            setError('Shkruaj emrin tënd');
+        if (!name.trim() || !lastname.trim() || !email.trim()) {
+            setError('Plotëso emrin, mbiemrin dhe email-in');
+            return;
+        }
+
+        if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+            setError('Email-i nuk është i vlefshëm');
             return;
         }
 
         try {
             setLoading(true);
-            await updateProfileName(name.trim());
+            await updateProfile({
+                name: name.trim(),
+                lastname: lastname.trim(),
+                email: email.trim(),
+            });
         } catch (err) {
             // error eshte vendosur tashme nga context
         } finally {
@@ -32,10 +43,29 @@ const ProfileSetupForm = () => {
         <View>
             <TextInput
                 style={styles.input}
-                placeholder="Emri yt"
+                placeholder="Emri"
                 placeholderTextColor={colors.textSecondary}
                 value={name}
                 onChangeText={setName}
+            />
+
+            <TextInput
+                style={styles.input}
+                placeholder="Mbiemri"
+                placeholderTextColor={colors.textSecondary}
+                value={lastname}
+                onChangeText={setLastname}
+            />
+
+            <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                value={email}
+                onChangeText={setEmail}
             />
 
             {error && <Text style={styles.error}>{error}</Text>}

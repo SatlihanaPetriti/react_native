@@ -3,11 +3,10 @@ import {
     View,
     Text,
     Animated,
+    ScrollView,
     StyleSheet,
     StatusBar,
     KeyboardAvoidingView,
-    TouchableWithoutFeedback,
-    Keyboard,
     Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -59,46 +58,49 @@ const AuthLayout = ({ title, subtitle, step, totalSteps = 3, children }) => {
             />
 
             <KeyboardAvoidingView
-                style={styles.flex}
+                style={styles.keyboard}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
-                <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.flex}>
-                        <Animated.View
-                            style={[
-                                styles.header,
-                                { opacity: headerFade, transform: [{ translateY: headerSlide }] },
-                            ]}
-                        >
-                            <AppMark />
-                            <Text style={styles.title}>{title}</Text>
-                            {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-                        </Animated.View>
+                <ScrollView
+                    contentContainerStyle={styles.scroll}
+                    keyboardShouldPersistTaps="handled"
+                    keyboardDismissMode="on-drag"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <Animated.View
+                        style={[
+                            styles.header,
+                            { opacity: headerFade, transform: [{ translateY: headerSlide }] },
+                        ]}
+                    >
+                        <AppMark />
+                        <Text style={styles.title}>{title}</Text>
+                        {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+                    </Animated.View>
 
-                        <Animated.View
-                            style={[
-                                styles.content,
-                                { opacity: cardFade, transform: [{ translateY: cardSlide }] },
-                            ]}
-                        >
-                            {children}
-                        </Animated.View>
+                    <Animated.View
+                        style={[
+                            styles.content,
+                            { opacity: cardFade, transform: [{ translateY: cardSlide }] },
+                        ]}
+                    >
+                        {children}
+                    </Animated.View>
 
-                        {!!step && (
-                            <View style={styles.dots}>
-                                {Array.from({ length: totalSteps }).map((_, index) => (
-                                    <View
-                                        key={index}
-                                        style={[
-                                            styles.dot,
-                                            index + 1 === step && styles.dotActive,
-                                        ]}
-                                    />
-                                ))}
-                            </View>
-                        )}
-                    </View>
-                </TouchableWithoutFeedback>
+                    {!!step && (
+                        <View style={styles.dots}>
+                            {Array.from({ length: totalSteps }).map((_, index) => (
+                                <View
+                                    key={index}
+                                    style={[
+                                        styles.dot,
+                                        index + 1 === step && styles.dotActive,
+                                    ]}
+                                />
+                            ))}
+                        </View>
+                    )}
+                </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -112,10 +114,15 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
 
-    flex: {
+    keyboard: {
         flex: 1,
+    },
+
+    scroll: {
+        flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.lg,
     },
 
     decorTop: {
