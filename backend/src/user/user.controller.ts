@@ -1,6 +1,7 @@
 import { Controller, Body, Patch, Get, Param, Req, HttpStatus } from '@nestjs/common';
 import type { Request } from 'express';
 import { UserService } from './user.service';
+import { UpdateProfileDto } from './DTO/update-profile.dto';
 import { MyErrorHandler } from 'src/ErrorHandler/handleError';
 
 @Controller('user')
@@ -22,17 +23,17 @@ export class UserController {
         return this.userService.findByEmail(email)
     }
 
-    @Patch(':id/name')
-    public async updateName(
+    @Patch(':id/profile')
+    public async updateProfile(
         @Param('id') id: string,
-        @Body('name') name: string,
+        @Body() dto: UpdateProfileDto,
         @Req() req: Request,
     ) {
-        // useri mund te ndryshoje vetem emrin e vet
+        // useri mund te ndryshoje vetem profilin e vet
         if (req.user?.id !== Number(id)) {
             throw new MyErrorHandler('You can only edit your own profile', HttpStatus.FORBIDDEN);
         }
-        return this.userService.updateName(Number(id), name);
+        return this.userService.updateProfile(Number(id), dto);
     }
 
 }

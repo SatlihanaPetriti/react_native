@@ -276,10 +276,7 @@ export class ChatService {
     }
 
     // Merr mesazhet e nje conversation, bashke me statusin e leximit per secilin
-    public async getMessages(
-        conversationId: number,
-        userId: number,
-    ): Promise<MessageWithReadStatus[]> {
+    public async getMessages(conversationId: number, userId: number): Promise<MessageWithReadStatus[]> {
 
         const isParticipant = await this.isParticipant(
             conversationId,

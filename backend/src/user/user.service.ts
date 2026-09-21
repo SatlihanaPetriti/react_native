@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './Entity/user.entity';
+import { UpdateProfileDto } from './DTO/update-profile.dto';
 import { HttpStatus } from '@nestjs/common';
 import { MyErrorHandler } from 'src/ErrorHandler/handleError';
 
@@ -52,9 +53,11 @@ export class UserService {
         return await this.userRepository.findOne({ where: { phoneNumber } });
     }
 
-    public async updateName(id: number, name: string): Promise<UserEntity> {
+    public async updateProfile(id: number, dto: UpdateProfileDto): Promise<UserEntity> {
         const user = await this.findOne(id);
-        user.name = name;
+        user.name = dto.name;
+        user.lastname = dto.lastname;
+        user.email = dto.email;
         return await this.userRepository.save(user);
     }
 
